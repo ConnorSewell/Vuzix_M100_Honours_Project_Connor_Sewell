@@ -9,7 +9,9 @@ import java.util.List;
 
 
 /**
- * Created by Connor on 16/01/2017.
+ * Checks if certain sensors are functional.
+ * https://developer.android.com/guide/topics/sensors/sensors_overview.html
+ * ^ Code from the above link used extensively for detecting Android sensors: Accelerometer And Gyroscope
  */
 public class SensorHandler
 {
