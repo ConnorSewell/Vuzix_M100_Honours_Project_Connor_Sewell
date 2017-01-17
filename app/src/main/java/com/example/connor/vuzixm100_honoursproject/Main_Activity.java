@@ -12,6 +12,7 @@ public class Main_Activity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         SensorHandler sn = new SensorHandler(this);
+        AccelerometerHandler ah = new AccelerometerHandler(this);
     }
 
     @Override
