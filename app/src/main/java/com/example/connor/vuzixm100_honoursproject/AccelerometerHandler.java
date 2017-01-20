@@ -51,5 +51,7 @@ public class AccelerometerHandler implements SensorEventListener
         System.out.println("x: " + linearAcceleration[0]);
         System.out.println("y: " + linearAcceleration[1]);
         System.out.println("z: " + linearAcceleration[2]);
+
+        System.out.println("Time: " + event.timestamp);
     }
 }
