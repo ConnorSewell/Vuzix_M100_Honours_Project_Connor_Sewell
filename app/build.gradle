@@ -4,10 +4,11 @@ android {
     compileSdkVersion 'Vuzix Corporation:Vuzix M100 Add-On:15'
     buildToolsVersion "25.0.2"
 
+
     defaultConfig {
         applicationId "com.example.connor.vuzixm100_honoursproject"
         minSdkVersion 15
-        targetSdkVersion 24
+        targetSdkVersion 15
         versionCode 1
         versionName "1.0"
     }
@@ -26,4 +27,8 @@ android {
 
 dependencies {
     compile fileTree(dir: 'libs', include: ['*.jar'])
+}
+
+dependencies {
+    //compile 'com.google.android.gms:play-services:10.0.1'
 }

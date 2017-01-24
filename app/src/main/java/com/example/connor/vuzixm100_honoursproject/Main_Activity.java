@@ -1,18 +1,38 @@
 package com.example.connor.vuzixm100_honoursproject;
 
 import android.app.Activity;
+import android.content.Context;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.location.LocationListener;
 import android.os.Bundle;
+//import com.google.android.gms.location.Location;
+import android.Manifest;
+import android.app.Service;
+import android.content.Context;
+import android.content.Intent;
+import android.content.pm.PackageManager;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+
 import android.view.Menu;
 import android.view.MenuItem;
 
-public class Main_Activity extends Activity {
+
+public class Main_Activity extends Activity
+{
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    protected void onCreate(Bundle savedInstanceState)
+    {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
-        SensorHandler sn = new SensorHandler(this);
-        AccelerometerHandler ah = new AccelerometerHandler(this);
+        //SensorHandler sn = new SensorHandler(this);
+        //AccelerometerHandler ah = new AccelerometerHandler(this);
+
+        GPS gps = new GPS(this);
     }
 
     @Override
