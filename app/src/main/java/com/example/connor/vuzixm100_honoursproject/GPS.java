@@ -15,6 +15,8 @@ import java.security.Security;
 
 /**
  * Created by Connor on 23/01/2017.
+ * https://developer.android.com/guide/topics/location/strategies.html
+ * ^ Used throughout class. Time of reference: 25/01/2017 @ 20:05
  */
 public class GPS
 {

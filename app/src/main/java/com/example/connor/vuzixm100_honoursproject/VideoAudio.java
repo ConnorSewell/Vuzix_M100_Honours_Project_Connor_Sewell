@@ -2,80 +2,41 @@ package com.example.connor.vuzixm100_honoursproject;
 
 import android.app.Activity;
 import android.content.Context;
-import android.hardware.Camera;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationListener;
 import android.media.CamcorderProfile;
 import android.media.MediaRecorder;
-import android.os.Bundle;
-//import com.google.android.gms.location.Location;
-import android.Manifest;
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-
+import android.hardware.Camera;
 import android.os.Environment;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
+import android.view.View;
+import android.widget.Button;
 import android.widget.FrameLayout;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Timer;
-import java.util.TimerTask;
 
-
-public class Main_Activity extends Activity
+/**
+ * Created by Connor on 24/01/2017.
+ * Handles video/audio data.
+ * https://developer.android.com/guide/topics/media/camera.html#capture-video
+ * ^ Used throughout class. Accessed: 25/01/2017 @ 19:10
+ */
+public class VideoAudio
 {
-
+    private Context context;
     private CameraPreview cp;
     private Camera camera;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
-        super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_main_);
+    public VideoAudio(Context context) {
+        this.context = context;
+        cp = new CameraPreview(this.context, camera);
+
         camera = Camera.open();
-        cp = new CameraPreview(this, camera);
-        FrameLayout preview = (FrameLayout) findViewById(R.id.camera_preview);
-        preview.addView(cp);
         init();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main_, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
-    MediaRecorder mr = new MediaRecorder();
     private void init() {
-
-
+        MediaRecorder mr = new MediaRecorder();
 
         camera.unlock();
         mr.setCamera(camera);
@@ -93,36 +54,30 @@ public class Main_Activity extends Activity
         }
 
         File mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                "NewVID_.mp4");
+                "VID_.mp4");
 
         mr.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH));
         mr.setOutputFile(mediaFile.toString());
 
-        System.out.println("Out: " + mediaFile.toString());
+        mr.setPreviewDisplay(cp.getHolder().getSurface());
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mr.setPreviewDisplay(cp.getHolder().getSurface());
-                try {
-                    mr.prepare();
-                } catch (IllegalStateException e) {
-                    System.out.println("Error: " + String.valueOf(e));
-                } catch (IOException e) {
-                    System.out.println("Error: " + String.valueOf(e));
-                }
-                // this code will be executed after 2 seconds
-                mr.start();
-            }
-        }, 15000);
+        try
+        {
+            mr.prepare();
+        } catch (IllegalStateException e) {
+            System.out.println("Error: " + String.valueOf(e));
+        } catch (IOException e) {
+            System.out.println("Error: " + String.valueOf(e));
+        }
 
+        //mr.start();
     }
 
     /**
      * https://developer.android.com/guide/topics/media/camera.html#capture-video
      * ^Used throughout class. Accessed: 25/01/2017 @ 19:10
      */
-   public class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
+    class CameraPreview extends SurfaceView implements SurfaceHolder.Callback {
         private SurfaceHolder mHolder;
         private Camera mCamera;
 
@@ -143,12 +98,10 @@ public class Main_Activity extends Activity
             }
         }
 
-        @Override
         public void surfaceDestroyed(SurfaceHolder holder) {
             // empty. Take care of releasing the Camera preview in your activity.
         }
 
-        @Override
         public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
             if (mHolder.getSurface() == null) {
                 // preview surface does not exist
