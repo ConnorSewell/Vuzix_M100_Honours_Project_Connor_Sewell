@@ -3,9 +3,11 @@ package com.example.connor.vuzixm100_honoursproject;
 import android.app.Activity;
 import android.content.Context;
 import android.media.CamcorderProfile;
+import android.media.CameraProfile;
 import android.media.MediaRecorder;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.provider.ContactsContract;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -33,7 +35,8 @@ public class VideoAudio implements SurfaceHolder.Callback
     private SurfaceHolder mHolder;
     private MediaRecorder mr;
 
-    public VideoAudio(Context context, SurfaceView surfaceView) {
+    public VideoAudio(Context context, SurfaceView surfaceView)
+    {
         this.context = context;
         this.surfaceView = surfaceView;
         camera = Camera.open();
@@ -53,8 +56,8 @@ public class VideoAudio implements SurfaceHolder.Callback
             System.out.print("Camera = null");
         }
 
-        mr.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mr.setVideoSource(MediaRecorder.VideoSource.CAMERA);
+        mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
         File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
                 Environment.DIRECTORY_PICTURES), "ACELP");
@@ -67,31 +70,39 @@ public class VideoAudio implements SurfaceHolder.Callback
             }
         }
 
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator +
-                "NewVideo.mp4");
+        File mediaFile = new File(mediaStorageDir.getPath() + File.separator + "NewVideo.mp4");
 
-        mr.setProfile(CamcorderProfile.get(CamcorderProfile.QUALITY_LOW));
+        CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
+        cp.videoFrameRate = 24;
+        mr.setProfile(cp);
         mr.setOutputFile(mediaFile.toString());
 
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                try {
+                try
+                {
                     mr.setPreviewDisplay(mHolder.getSurface());
                 } catch (Exception e) {
-                    System.out.println("Error:" + String.valueOf(e));
+                    System.out.println("Error on set preview display:" + String.valueOf(e));
                 }
-                try {
+                try
+                {
                     mr.prepare();
-                } catch (IllegalStateException e) {
-                    System.out.println("Error: " + String.valueOf(e));
-                } catch (IOException e) {
-                    System.out.println("Error: " + String.valueOf(e));
+                } catch (Exception e)
+                {
+                    System.out.println("Error on prepare: " + String.valueOf(e));
                 }
-                // this code will be executed after 2 seconds
-                mr.start();
+                try
+                {
+                    mr.start();
+                }
+                catch(Exception e)
+                {
+                    System.out.println("Error on start: " + String.valueOf(e));
+                }
             }
-        }, 1000);
+        }, 5000);
     }
 
     public void surfaceCreated(SurfaceHolder holder)
@@ -117,12 +128,13 @@ public class VideoAudio implements SurfaceHolder.Callback
             // ignore: tried to stop a non-existent preview
         }
 
-        try {
-            camera.setPreviewDisplay(mHolder);
-            camera.startPreview();
+        try
+        {
+            //camera.setPreviewDisplay(mHolder);
+            //camera.startPreview();
 
         } catch (Exception e) {
-            System.out.println("Error: " + String.valueOf(e));
+            System.out.println("Error on camera preview: " + String.valueOf(e));
         }
     }
 }
