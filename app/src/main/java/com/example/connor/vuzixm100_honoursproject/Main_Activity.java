@@ -1,44 +1,28 @@
 package com.example.connor.vuzixm100_honoursproject;
 
 import android.app.Activity;
+import android.content.BroadcastReceiver;
 import android.content.Context;
-import android.hardware.Camera;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-import android.location.LocationListener;
-import android.media.CamcorderProfile;
+import android.content.IntentFilter;
 import android.media.MediaRecorder;
+import android.net.wifi.p2p.WifiP2pDeviceList;
+import android.net.wifi.p2p.WifiP2pManager;
+import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Bundle;
-//import com.google.android.gms.location.Location;
-import android.Manifest;
-import android.app.Service;
-import android.content.Context;
-import android.content.Intent;
-import android.content.pm.PackageManager;
-import android.location.Location;
-import android.location.LocationListener;
-import android.location.LocationManager;
-
-import android.os.Environment;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
-import android.view.SurfaceHolder;
 import android.view.SurfaceView;
-import android.widget.FrameLayout;
 
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.Timer;
-import java.util.TimerTask;
-
-
+//https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
+//^Used for network related code (WifiP2pManager, Channel, BroadcastReceiver...). Accessed 08/02/2017 @ 14:55
 public class Main_Activity extends Activity
 {
     private SurfaceView surfaceView;
     MediaRecorder mr = new MediaRecorder();
+    WifiP2pManager mManager;
+    Channel mChannel;
+    BroadcastReceiver mReceiver;
+    IntentFilter mIntentFilter;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -46,7 +30,36 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        VideoAudio vd = new VideoAudio(this, surfaceView);
+        //VideoAudio vd = new VideoAudio(this, surfaceView);
+
+        /**
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mReceiver = new ClientServerManager(mManager, mChannel, this);
+
+        mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        */
+
+        //AccelerometerHandler ah = new AccelerometerHandler(this);
+
+    }
+
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        registerReceiver(mReceiver, mIntentFilter);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        unregisterReceiver(mReceiver);
     }
 
     @Override
