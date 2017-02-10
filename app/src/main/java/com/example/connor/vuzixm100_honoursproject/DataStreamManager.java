@@ -8,6 +8,8 @@ import java.net.Socket;
 
 /**
  * Created by Connor on 10/02/2017.
+ * Using: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
+ * ^ For all network related code. Accessed: 10/02/2017 @ 03:00
  */
 public class DataStreamManager
 {
