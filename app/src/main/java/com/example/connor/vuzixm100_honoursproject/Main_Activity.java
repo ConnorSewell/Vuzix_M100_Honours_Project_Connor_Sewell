@@ -48,19 +48,19 @@ public class Main_Activity extends Activity
 
     }
 
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
-    }
+    //@Override
+   // protected void onResume()
+    //{
+     //   super.onResume();
+     //   registerReceiver(mReceiver, mIntentFilter);
+   // }
 
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }
+    //@Override
+    //protected void onPause()
+   // {
+   //     super.onPause();
+   //     unregisterReceiver(mReceiver);
+   // }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
