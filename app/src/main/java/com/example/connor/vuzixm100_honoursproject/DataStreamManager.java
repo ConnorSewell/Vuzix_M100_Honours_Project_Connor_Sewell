@@ -1,6 +1,8 @@
 package com.example.connor.vuzixm100_honoursproject;
 
 import android.content.Context;
+import android.os.AsyncTask;
+import android.util.Log;
 
 import java.io.IOException;
 import java.net.InetSocketAddress;
@@ -11,7 +13,7 @@ import java.net.Socket;
  * Using: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ For all network related code. Accessed: 10/02/2017 @ 03:00
  */
-public class DataStreamManager
+public class DataStreamManager extends AsyncTask<Void, Void, Void>
 {
     Context context;
     Socket socket;
@@ -21,20 +23,30 @@ public class DataStreamManager
         socket = new Socket();
     }
 
-    private void streamData()
+    @Override
+    protected Void doInBackground(Void... params)
     {
         try
         {
             socket.bind(null);
             //Phone, Port, Timeout
-            socket.connect((new InetSocketAddress("PhoneName", 0)), 1000);
+            socket.connect((new InetSocketAddress("...", 8888)), 1000);
 
+            Log.i("Success: ", "Connected to server!");
             //socket.close();
         }
-        catch(IOException e)
+        catch(Exception e)
         {
-
+            Log.e("Error: ", e.toString());
+            //System.out.println("Error here: " + e.toString());
         }
+
+        return null;
+    }
+
+    private void streamData()
+    {
+
     }
 
 
