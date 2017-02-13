@@ -32,7 +32,6 @@ public class Main_Activity extends Activity
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
         //VideoAudio vd = new VideoAudio(this, surfaceView);
 
-
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
         mReceiver = new ClientServerManager(mManager, mChannel, this);

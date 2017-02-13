@@ -1,6 +1,9 @@
 package com.example.connor.vuzixm100_honoursproject;
 
 import android.content.Context;
+import android.net.wifi.p2p.WifiP2pConfig;
+import android.net.wifi.p2p.WifiP2pGroup;
+import android.net.wifi.p2p.WifiP2pInfo;
 import android.os.AsyncTask;
 import android.util.Log;
 
@@ -15,12 +18,19 @@ import java.net.Socket;
  */
 public class DataStreamManager extends AsyncTask<Void, Void, Void>
 {
-    Context context;
     Socket socket;
-    public DataStreamManager(Context context)
+    WifiP2pConfig config;
+
+    String ip;
+
+    public DataStreamManager(String ip)
     {
-        this.context = context;
+        //this.context = context;
+        this.ip = ip;
+        this.config = config;
         socket = new Socket();
+
+        Log.i("Info... ", "Config is: " + ip);
     }
 
     @Override
@@ -30,8 +40,7 @@ public class DataStreamManager extends AsyncTask<Void, Void, Void>
         {
             socket.bind(null);
             //Phone, Port, Timeout
-            socket.connect((new InetSocketAddress("...", 8888)), 1000);
-
+            socket.connect((new InetSocketAddress(ip, 8888)), 1000);
             Log.i("Success: ", "Connected to server!");
             //socket.close();
         }
