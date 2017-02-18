@@ -24,7 +24,8 @@ import java.util.List;
  * Majority of class code taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html
  * ^ Accessed 08/02/2017 @ 14:55
  */
-public class ClientServerManager extends BroadcastReceiver {
+public class ClientServerManager extends BroadcastReceiver
+{
     private Channel mChannel;
     private WifiP2pManager mManager;
     private Main_Activity mActivity;
@@ -39,7 +40,8 @@ public class ClientServerManager extends BroadcastReceiver {
         this.mActivity = mActivity;
 
 
-        mManager.discoverPeers(channel, new WifiP2pManager.ActionListener() {
+        mManager.discoverPeers(channel, new WifiP2pManager.ActionListener()
+        {
             @Override
             public void onSuccess() {
                 Log.i(infoLogTag, "Successful");
@@ -57,19 +59,20 @@ public class ClientServerManager extends BroadcastReceiver {
     public void onReceive(Context context, Intent intent) {
         String action = intent.getAction();
 
-        if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action)) {
-        } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action)) {
-            Log.i(infoLogTag, action);
+        if (WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION.equals(action))
+        {
+
+        } else if (WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION.equals(action))
+        {
             mManager.requestPeers(mChannel, peerListListener);
-            Log.i(infoLogTag, action);
-        } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action)) {
-            Log.i(infoLogTag, action);
-            if(config != null)
+        } else if (WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION.equals(action))
+        {
+            if(config!=null)
             {
                 //Taken from: http://stackoverflow.com/questions/15621247/wifi-direct-group-owner-address
                 //^ Accessed: 12/02/2017 @ 22:40
-                mManager.requestConnectionInfo(mChannel, new WifiP2pManager.ConnectionInfoListener()
-                {
+                mManager.requestConnectionInfo(mChannel,
+                        new WifiP2pManager.ConnectionInfoListener() {
                     @Override
                     public void onConnectionInfoAvailable(WifiP2pInfo info) {
 
@@ -79,6 +82,7 @@ public class ClientServerManager extends BroadcastReceiver {
                     }
                 });
             }
+
         } else if (WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION.equals(action)) {
             Log.i(infoLogTag, action);
         }
@@ -86,6 +90,7 @@ public class ClientServerManager extends BroadcastReceiver {
 
     private List<WifiP2pDevice> peers = new ArrayList<WifiP2pDevice>();
     boolean deviceConnected = false;
+
     private WifiP2pManager.PeerListListener peerListListener = new WifiP2pManager.PeerListListener() {
         @Override
         public void onPeersAvailable(WifiP2pDeviceList peerList) {
@@ -104,7 +109,7 @@ public class ClientServerManager extends BroadcastReceiver {
 
                         WifiP2pDevice device = peers.get(i);
                         config.deviceAddress = device.deviceAddress;
-                        config.groupOwnerIntent = 0;
+                        config.groupOwnerIntent = 9; //0~15...
                         deviceConnected = true;
 
                         mManager.connect(mChannel, config, new WifiP2pManager.ActionListener()
@@ -116,7 +121,8 @@ public class ClientServerManager extends BroadcastReceiver {
                             }
 
                             @Override
-                            public void onFailure(int reason) {
+                            public void onFailure(int reason)
+                            {
                                 Log.i(infoLogTag, "Failed to connect");
                             }
                         });
@@ -124,7 +130,8 @@ public class ClientServerManager extends BroadcastReceiver {
                     }
                 }
 
-                if (peers.size() == 0) {
+                if (peers.size() == 0)
+                {
                     Log.i(infoLogTag, "No devices found");
                     return;
                 }

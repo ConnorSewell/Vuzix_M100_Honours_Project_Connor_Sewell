@@ -6,6 +6,7 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
 
 /**
  * Handles accelerometer data gathering/streaming
@@ -18,6 +19,7 @@ public class AccelerometerHandler implements SensorEventListener
     private Sensor accelerometerSensor;
     private Context context;
     private float[] gravity, linearAcceleration;
+    String infoLogTag = "INFO: ";
 
     public AccelerometerHandler(Context context)
     {
@@ -26,13 +28,14 @@ public class AccelerometerHandler implements SensorEventListener
         accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gravity = new float[3];
         linearAcceleration = new float[3];
-        mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_NORMAL);
+        //Max sample rate
+        mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
     }
 
     @Override
     public final void onAccuracyChanged(Sensor sensor, int accuracy)
     {
-        // Do something here if sensor accuracy changes.
+        Log.i(infoLogTag, "Accelerometer accuracy changed...");
     }
 
     @Override

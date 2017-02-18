@@ -32,34 +32,37 @@ public class Main_Activity extends Activity
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
         //VideoAudio vd = new VideoAudio(this, surfaceView);
 
-        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        mChannel = mManager.initialize(this, getMainLooper(), null);
-        mReceiver = new ClientServerManager(mManager, mChannel, this);
+        //mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        //mChannel = mManager.initialize(this, getMainLooper(), null);
+        //mReceiver = new ClientServerManager(mManager, mChannel, this);
 
-        mIntentFilter = new IntentFilter();
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        //mIntentFilter = new IntentFilter();
+        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+
+
         //AccelerometerHandler ah = new AccelerometerHandler(this);
         //ClientServerManager csm = new ClientServerManager();
        // new DataStreamManager(this).execute();
+        new ConnectionManager(this);
 
     }
 
-    @Override
-    protected void onResume()
-    {
-        super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
-    }
+    //@Override
+    //protected void onResume()
+    //{
+     //   super.onResume();
+      //  registerReceiver(mReceiver, mIntentFilter);
+    //}
 
-    @Override
-    protected void onPause()
-    {
-        super.onPause();
-        unregisterReceiver(mReceiver);
-    }
+    //@Override
+    //protected void onPause()
+    //{
+    //    super.onPause();
+    //    unregisterReceiver(mReceiver);
+    //}
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

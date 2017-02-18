@@ -8,6 +8,8 @@ import android.os.AsyncTask;
 import android.util.Log;
 
 import java.io.IOException;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.net.InetSocketAddress;
 import java.net.Socket;
 
@@ -20,14 +22,14 @@ public class DataStreamManager extends AsyncTask<Void, Void, Void>
 {
     Socket socket;
     WifiP2pConfig config;
-
     String ip;
+    Context context;
 
     public DataStreamManager(String ip)
     {
-        //this.context = context;
         this.ip = ip;
         this.config = config;
+        this.context = context;
         socket = new Socket();
 
         Log.i("Info... ", "Config is: " + ip);
@@ -39,17 +41,19 @@ public class DataStreamManager extends AsyncTask<Void, Void, Void>
         try
         {
             socket.bind(null);
-            //Phone, Port, Timeout
             socket.connect((new InetSocketAddress(ip, 8888)), 1000);
             Log.i("Success: ", "Connected to server!");
-            //socket.close();
+            OutputStream os = socket.getOutputStream();
+            PrintWriter out = new PrintWriter(os);
+            out.write("Kate smells");
+            out.flush();
+            out.close();
+            socket.close();
         }
         catch(Exception e)
         {
             Log.e("Error: ", e.toString());
-            //System.out.println("Error here: " + e.toString());
         }
-
         return null;
     }
 
