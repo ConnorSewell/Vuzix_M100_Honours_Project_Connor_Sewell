@@ -9,6 +9,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -17,14 +18,11 @@ import java.net.Socket;
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
-public class ConnectionManager extends AsyncTask<Void, Void, String>
+class ConnectionManager extends AsyncTask<Void, Void, String>
 {
     Context context;
 
-    public ConnectionManager(Context context)
-    {
-        this.context = context;
-    }
+    public ConnectionManager() {}
 
     @Override
     protected String doInBackground(Void... params)
@@ -35,14 +33,13 @@ public class ConnectionManager extends AsyncTask<Void, Void, String>
         try
         {
             Log.i("Connection State: ", "Waiting for connection...");
-            sv = new ServerSocket(7777);
+            sv = new ServerSocket(8888);
             client = sv.accept();
             InputStream is = client.getInputStream();
-            sv.close();
+            String address = client.getInetAddress().toString();
+            return address;
         }
         catch(IOException e) {return e.toString();}
-
-        return "Transaction Completed";
     }
 
     @Override
@@ -50,7 +47,5 @@ public class ConnectionManager extends AsyncTask<Void, Void, String>
     {
         if (!exitResult.equals("Transaction Completed")) {Log.e("Error: ", exitResult);}
         else {Log.i("INFO: ", exitResult);}
-
-        Toast.makeText(context, "Result: " + exitResult, Toast.LENGTH_LONG).show();
     }
 }

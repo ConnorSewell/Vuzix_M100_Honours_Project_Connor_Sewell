@@ -9,9 +9,11 @@ import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.widget.Toast;
 
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
 //^Used for network related code (WifiP2pManager, Channel, BroadcastReceiver...). Accessed 08/02/2017 @ 14:55
@@ -23,6 +25,10 @@ public class Main_Activity extends Activity
     Channel mChannel;
     BroadcastReceiver mReceiver;
     IntentFilter mIntentFilter;
+
+    public String inetAddress;
+
+    public static String tester;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -42,12 +48,15 @@ public class Main_Activity extends Activity
         //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
+        new ConnectionManager().execute();
 
-        //AccelerometerHandler ah = new AccelerometerHandler(this);
-        //ClientServerManager csm = new ClientServerManager();
-       // new DataStreamManager(this).execute();
-        new ConnectionManager(this);
+        //streamData();
+    }
 
+    public void addClient(String address)
+    {
+        inetAddress = address;
+        Toast.makeText(this, "Result: " + address, Toast.LENGTH_LONG).show();
     }
 
     //@Override
