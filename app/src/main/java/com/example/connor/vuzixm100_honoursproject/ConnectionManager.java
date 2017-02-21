@@ -6,46 +6,42 @@ import android.util.Log;
 import android.widget.Toast;
 
 import java.io.BufferedReader;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.PrintWriter;
 import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
+
 
 /**
  * Created by Connor on 18/02/2017.
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
-class ConnectionManager extends AsyncTask<Void, Void, String>
+public class ConnectionManager implements Runnable
 {
     Context context;
-
+    Main_Activity ma;
     public ConnectionManager() {}
 
     @Override
-    protected String doInBackground(Void... params)
+    public void run()
     {
         ServerSocket sv;
         Socket client;
         InputStream inputStream;
         try
         {
-            Log.i("Connection State: ", "Waiting for connection...");
+            Log.i("Connection State: ", "Socket opened...");
             sv = new ServerSocket(8888);
             client = sv.accept();
-            InputStream is = client.getInputStream();
-            String address = client.getInetAddress().toString();
-            return address;
+            Log.i("Connection State: ", "Connected... Socket Accepted");
+            sv.close();
         }
-        catch(IOException e) {return e.toString();}
-    }
-
-    @Override
-    protected void onPostExecute(String exitResult)
-    {
-        if (!exitResult.equals("Transaction Completed")) {Log.e("Error: ", exitResult);}
-        else {Log.i("INFO: ", exitResult);}
+        catch(IOException e) {Log.e("Error: ", e.toString());}
     }
 }

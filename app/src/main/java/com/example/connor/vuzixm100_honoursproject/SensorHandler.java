@@ -46,15 +46,5 @@ public class SensorHandler
         {
             System.out.println("Gyroscope Not Found");
         }
-
-
     }
-
-
-
-
-
-
-
-
 }

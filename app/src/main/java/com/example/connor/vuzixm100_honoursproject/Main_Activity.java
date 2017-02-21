@@ -15,6 +15,10 @@ import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Toast;
 
+import java.util.Timer;
+import java.util.TimerTask;
+
+
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
 //^Used for network related code (WifiP2pManager, Channel, BroadcastReceiver...). Accessed 08/02/2017 @ 14:55
 public class Main_Activity extends Activity
@@ -27,8 +31,7 @@ public class Main_Activity extends Activity
     IntentFilter mIntentFilter;
 
     public String inetAddress;
-
-    public static String tester;
+    //ConnectionManager cm = new ConnectionManager();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -36,42 +39,50 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
+
         //VideoAudio vd = new VideoAudio(this, surfaceView);
 
-        //mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
-        //mChannel = mManager.initialize(this, getMainLooper(), null);
-        //mReceiver = new ClientServerManager(mManager, mChannel, this);
+        mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
+        mChannel = mManager.initialize(this, getMainLooper(), null);
+        mReceiver = new ClientServerManager(mManager, mChannel, this);
 
-        //mIntentFilter = new IntentFilter();
-        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
-        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
-        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
-        //mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
+        mIntentFilter = new IntentFilter();
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_STATE_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_PEERS_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
+        mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        new ConnectionManager().execute();
+        //Following same threading reference found in DataStreamManager class
+        ConnectionManager csm = new ConnectionManager();
+        Thread socketListener = new Thread(csm, "Thread One");
+        socketListener.start();
 
-        //streamData();
     }
 
     public void addClient(String address)
     {
         inetAddress = address;
-        Toast.makeText(this, "Result: " + address, Toast.LENGTH_LONG).show();
+        Toast.makeText(this, "Result: " + inetAddress, Toast.LENGTH_LONG).show();
     }
 
-    //@Override
-    //protected void onResume()
+    //public void newSocket()
     //{
-     //   super.onResume();
-      //  registerReceiver(mReceiver, mIntentFilter);
+    //    new ConnectionManager(this).execute();
     //}
 
-    //@Override
-    //protected void onPause()
-    //{
-    //    super.onPause();
-    //    unregisterReceiver(mReceiver);
-    //}
+    @Override
+    protected void onResume()
+    {
+        super.onResume();
+        registerReceiver(mReceiver, mIntentFilter);
+    }
+
+    @Override
+    protected void onPause()
+    {
+        super.onPause();
+        unregisterReceiver(mReceiver);
+    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
