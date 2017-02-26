@@ -7,7 +7,9 @@ import android.media.CameraProfile;
 import android.media.MediaRecorder;
 import android.hardware.Camera;
 import android.os.Environment;
+import android.os.ParcelFileDescriptor;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.view.View;
@@ -16,6 +18,7 @@ import android.widget.FrameLayout;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.Socket;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -35,21 +38,24 @@ public class VideoAudio implements SurfaceHolder.Callback
     private SurfaceHolder mHolder;
     private MediaRecorder mr;
 
-    public VideoAudio(Context context, SurfaceView surfaceView)
+    private String TAG = "Video Audio Class: ";
+
+    public VideoAudio(SurfaceView surfaceView)
     {
-        this.context = context;
+        //this.context = context;
         this.surfaceView = surfaceView;
         camera = Camera.open();
         mr = new MediaRecorder();
         mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
-        init();
     }
 
-    public void init()
+    public void init(Socket client)
     {
         camera.unlock();
         mr.setCamera(camera);
+
+        Log.i(TAG,"Video init");
 
         if (camera == null)
         {
@@ -75,7 +81,10 @@ public class VideoAudio implements SurfaceHolder.Callback
         CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         cp.videoFrameRate = 24;
         mr.setProfile(cp);
+
         mr.setOutputFile(mediaFile.toString());
+        //ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(socket);
+        //mr.setOutputFile(pfd.getFileDescriptor());
 
         new Timer().schedule(new TimerTask() {
             @Override

@@ -39,8 +39,7 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-
-        //VideoAudio vd = new VideoAudio(this, surfaceView);
+        VideoAudio vd = new VideoAudio(surfaceView);
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -52,8 +51,7 @@ public class Main_Activity extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        //Following same threading reference found in DataStreamManager class
-        ConnectionManager csm = new ConnectionManager();
+        ConnectionManager csm = new ConnectionManager(vd);
         Thread socketListener = new Thread(csm, "Thread One");
         socketListener.start();
 

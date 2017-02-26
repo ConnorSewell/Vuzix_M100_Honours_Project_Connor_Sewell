@@ -16,7 +16,6 @@ import java.lang.ref.WeakReference;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-
 /**
  * Created by Connor on 18/02/2017.
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
@@ -25,8 +24,12 @@ import java.net.Socket;
 public class ConnectionManager implements Runnable
 {
     Context context;
-    Main_Activity ma;
-    public ConnectionManager() {}
+    VideoAudio vd;
+
+    public ConnectionManager(VideoAudio vd)
+    {
+        this.vd = vd;
+    }
 
     @Override
     public void run()
@@ -40,6 +43,7 @@ public class ConnectionManager implements Runnable
             sv = new ServerSocket(8888);
             client = sv.accept();
             Log.i("Connection State: ", "Connected... Socket Accepted");
+            vd.init(client);
             sv.close();
         }
         catch(IOException e) {Log.e("Error: ", e.toString());}
