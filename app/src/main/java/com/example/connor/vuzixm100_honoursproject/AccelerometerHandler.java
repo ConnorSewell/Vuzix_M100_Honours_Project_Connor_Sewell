@@ -8,6 +8,8 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import java.io.PrintWriter;
+
 /**
  * Handles accelerometer data gathering/streaming
  * https://developer.android.com/guide/topics/sensors/sensors_overview.html
@@ -20,8 +22,9 @@ public class AccelerometerHandler implements SensorEventListener
     private Context context;
     private float[] gravity, linearAcceleration;
     String infoLogTag = "INFO: ";
-
-    public AccelerometerHandler(Context context)
+    private PrintWriter out;
+    private long upTimeBeforeStart;
+    public AccelerometerHandler(Context context, PrintWriter out)
     {
         this.context = context;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -30,6 +33,7 @@ public class AccelerometerHandler implements SensorEventListener
         linearAcceleration = new float[3];
         //Max sample rate
         mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        this.out = out;
     }
 
     @Override
@@ -38,6 +42,7 @@ public class AccelerometerHandler implements SensorEventListener
         Log.i(infoLogTag, "Accelerometer accuracy changed...");
     }
 
+    String outputString;
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
@@ -51,10 +56,13 @@ public class AccelerometerHandler implements SensorEventListener
         linearAcceleration[1] = event.values[1] - gravity[1];
         linearAcceleration[2] = event.values[2] - gravity[2];
 
-        System.out.println("x: " + linearAcceleration[0]);
-        System.out.println("y: " + linearAcceleration[1]);
-        System.out.println("z: " + linearAcceleration[2]);
+        outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+        //System.out.println(outputString);
+        out.write(outputString);
+        //System.out.println("x: " + linearAcceleration[0]);
+        //System.out.println("y: " + linearAcceleration[1]);
+        //System.out.println("z: " + linearAcceleration[2]);
 
-        System.out.println("Time: " + event.timestamp);
+        //System.out.println("Time: " + event.timestamp);
     }
 }

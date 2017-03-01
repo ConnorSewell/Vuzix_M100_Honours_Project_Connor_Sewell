@@ -37,10 +37,11 @@ public class VideoAudio implements SurfaceHolder.Callback
     private SurfaceView surfaceView;
     private SurfaceHolder mHolder;
     private MediaRecorder mr;
+    boolean mr1;
 
     private String TAG = "Video Audio Class: ";
 
-    public VideoAudio(SurfaceView surfaceView)
+    public VideoAudio(SurfaceView surfaceView, boolean mr1)
     {
         //this.context = context;
         this.surfaceView = surfaceView;
@@ -48,6 +49,7 @@ public class VideoAudio implements SurfaceHolder.Callback
         mr = new MediaRecorder();
         mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
+        this.mr1 = mr1;
     }
 
     public void init(Socket client)
@@ -65,16 +67,15 @@ public class VideoAudio implements SurfaceHolder.Callback
         mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(
-                Environment.DIRECTORY_PICTURES), "ACELP");
+        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "ACELP");
 
-        if (!mediaStorageDir.exists())
-        {
-            if (!mediaStorageDir.mkdirs())
+            if (!mediaStorageDir.exists())
             {
-                System.out.println("Failed to create directory...");
+                if (!mediaStorageDir.mkdirs())
+                {
+                    System.out.println("Failed to create directory...");
+                }
             }
-        }
 
         File mediaFile = new File(mediaStorageDir.getPath() + File.separator + "NewVideo.mp4");
 
@@ -82,13 +83,17 @@ public class VideoAudio implements SurfaceHolder.Callback
         cp.videoFrameRate = 24;
         mr.setProfile(cp);
 
-        mr.setOutputFile(mediaFile.toString());
-        //ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(socket);
-        //mr.setOutputFile(pfd.getFileDescriptor());
+        //mr.setOutputFile(mediaFile.toString());
+        Log.i(TAG, "Just before parcel descriptor");
+        ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(client);
+        Log.i(TAG, "Just after parcel descriptor");
+        mr.setOutputFile(pfd.getFileDescriptor());
+        Log.i(TAG, "Just after output file set to file descriptor");
 
         new Timer().schedule(new TimerTask() {
             @Override
-            public void run() {
+            public void run()
+            {
                 try
                 {
                     mr.setPreviewDisplay(mHolder.getSurface());

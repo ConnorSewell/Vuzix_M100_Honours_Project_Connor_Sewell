@@ -21,12 +21,14 @@ import java.net.Socket;
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
-public class ConnectionManager implements Runnable
+public class VideoStreamer implements Runnable
 {
     Context context;
     VideoAudio vd;
 
-    public ConnectionManager(VideoAudio vd)
+    private String TAG = "VideoStreamer: ";
+
+    public VideoStreamer(VideoAudio vd)
     {
         this.vd = vd;
     }
@@ -39,12 +41,13 @@ public class ConnectionManager implements Runnable
         InputStream inputStream;
         try
         {
-            Log.i("Connection State: ", "Socket opened...");
+            Log.i(TAG, "Socket opened...");
             sv = new ServerSocket(8888);
             client = sv.accept();
-            Log.i("Connection State: ", "Connected... Socket Accepted");
+            Log.i(TAG, "Connected... Socket Accepted");
             vd.init(client);
-            sv.close();
+            Log.i(TAG, "Video Initialised");
+            //sv.close();
         }
         catch(IOException e) {Log.e("Error: ", e.toString());}
     }

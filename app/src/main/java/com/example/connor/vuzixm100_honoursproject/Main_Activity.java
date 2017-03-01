@@ -5,18 +5,13 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
 import android.media.MediaRecorder;
-import android.net.wifi.p2p.WifiP2pDeviceList;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Toast;
-
-import java.util.Timer;
-import java.util.TimerTask;
 
 
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
@@ -31,7 +26,7 @@ public class Main_Activity extends Activity
     IntentFilter mIntentFilter;
 
     public String inetAddress;
-    //ConnectionManager cm = new ConnectionManager();
+    //VideoStreamer cm = new VideoStreamer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -39,7 +34,8 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        VideoAudio vd = new VideoAudio(surfaceView);
+        VideoAudio vd = new VideoAudio(surfaceView, true);
+        //VideoAudio vd2 = new VideoAudio(surfaceView, false);
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -51,9 +47,13 @@ public class Main_Activity extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        ConnectionManager csm = new ConnectionManager(vd);
-        Thread socketListener = new Thread(csm, "Thread One");
-        socketListener.start();
+        //VideoStreamer csm = new VideoStreamer(vd);
+        //Thread videoSocketListener = new Thread(csm, "Thread One");
+        //videoSocketListener.start();
+
+        //AccelerometerStreamer as = new AccelerometerStreamer(this);
+        //Thread accelerometerSocketListener = new Thread(as, "Thread One");
+        //accelerometerSocketListener.start();
 
     }
 
@@ -65,7 +65,7 @@ public class Main_Activity extends Activity
 
     //public void newSocket()
     //{
-    //    new ConnectionManager(this).execute();
+    //    new VideoStreamer(this).execute();
     //}
 
     @Override
