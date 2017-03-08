@@ -11,6 +11,9 @@ import java.net.Socket;
 
 /**
  * Created by Connor on 08/03/2017.
+ * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
+ * ^ Accessed: 10/02/2017 @ 01:29
+ *
  */
 public class OptionReceiver implements Runnable
 {

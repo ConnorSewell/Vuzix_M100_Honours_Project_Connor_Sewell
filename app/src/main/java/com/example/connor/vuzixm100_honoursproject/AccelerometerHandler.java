@@ -46,18 +46,16 @@ public class AccelerometerHandler implements SensorEventListener
     }
 
     String outputString;
-    int counter = 0;
     int count = 0;
     float averagedX = 0.f;
     float averagedY = 0.f;
     float averagedZ = 0.f;
     long averagedTime = 0;
+    final float alpha = 0.8f;
 
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
-        final float alpha = 0.8f;
-
         gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
         gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
         gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
@@ -66,9 +64,6 @@ public class AccelerometerHandler implements SensorEventListener
         linearAcceleration[1] = event.values[1] - gravity[1];
         linearAcceleration[2] = event.values[2] - gravity[2];
         time = event.timestamp;
-
-        //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
-        //out.println(outputString);
 
         averagedX = averagedX + linearAcceleration[0];
         averagedY = averagedY + linearAcceleration[1];
@@ -91,12 +86,6 @@ public class AccelerometerHandler implements SensorEventListener
             averagedZ = 0;
             averagedTime = 0;
         }
-        //try {
-        //    Thread.sleep(200);
-        //}
-        //catch(Exception e){}
-        //counter++;
-        //Log.i("Count: ", String.valueOf(counter));
     }
 
     public String getCurrentValues()

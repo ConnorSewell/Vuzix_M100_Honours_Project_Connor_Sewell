@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
-import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -27,7 +26,6 @@ public class Main_Activity extends Activity
     IntentFilter mIntentFilter;
 
     public String inetAddress;
-    //VideoStreamer cm = new VideoStreamer();
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -35,9 +33,7 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        ImageView imgView = (ImageView) findViewById(R.id.image_view);
-        VideoAudio vd = new VideoAudio(surfaceView, true, imgView);
-        //VideoAudio vd2 = new VideoAudio(surfaceView, false);
+        VideoCapture vd = new VideoCapture(surfaceView, true);
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);

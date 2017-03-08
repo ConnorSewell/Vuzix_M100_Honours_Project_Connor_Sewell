@@ -3,6 +3,8 @@ package com.example.connor.vuzixm100_honoursproject;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.ByteArrayOutputStream;
+import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
@@ -42,24 +44,6 @@ public class AccelerometerStreamer  implements Runnable
             Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
             ah = new AccelerometerHandler(context, out);
-                //out.println(ah.getCurrentValues());
-                //try
-                //{
-                //    Thread.sleep(200);
-                //}
-                //catch(Exception e){}
-            //}
-
-            //while(true)
-            //{
-            //    try {
-            //        Thread.sleep(200);
-            //    }
-            //    catch(Exception e){}
-            //    out.write(ah.getCurrentValues());
-            //}
-
-            //sv.close();
         }
         catch(IOException e) {Log.e("Error: ", e.toString());}
     }
