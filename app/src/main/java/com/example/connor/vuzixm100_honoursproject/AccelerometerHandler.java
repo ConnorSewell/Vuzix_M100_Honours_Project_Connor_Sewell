@@ -24,6 +24,8 @@ public class AccelerometerHandler implements SensorEventListener
     String infoLogTag = "INFO: ";
     private PrintWriter out;
     private long upTimeBeforeStart;
+    private float x,y,z;
+    private long time;
     public AccelerometerHandler(Context context, PrintWriter out)
     {
         this.context = context;
@@ -32,8 +34,9 @@ public class AccelerometerHandler implements SensorEventListener
         gravity = new float[3];
         linearAcceleration = new float[3];
         //Max sample rate
-        mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
         this.out = out;
+        mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+
     }
 
     @Override
@@ -43,6 +46,13 @@ public class AccelerometerHandler implements SensorEventListener
     }
 
     String outputString;
+    int counter = 0;
+    int count = 0;
+    float averagedX = 0.f;
+    float averagedY = 0.f;
+    float averagedZ = 0.f;
+    long averagedTime = 0;
+
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
@@ -55,14 +65,43 @@ public class AccelerometerHandler implements SensorEventListener
         linearAcceleration[0] = event.values[0] - gravity[0];
         linearAcceleration[1] = event.values[1] - gravity[1];
         linearAcceleration[2] = event.values[2] - gravity[2];
+        time = event.timestamp;
 
-        outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
-        //System.out.println(outputString);
-        out.write(outputString);
-        //System.out.println("x: " + linearAcceleration[0]);
-        //System.out.println("y: " + linearAcceleration[1]);
-        //System.out.println("z: " + linearAcceleration[2]);
+        //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+        //out.println(outputString);
 
-        //System.out.println("Time: " + event.timestamp);
+        averagedX = averagedX + linearAcceleration[0];
+        averagedY = averagedY + linearAcceleration[1];
+        averagedZ = averagedZ + linearAcceleration[2];
+        averagedTime = averagedTime + event.timestamp;
+        count++;
+
+        if(count == 25)
+        {
+            averagedX = averagedX/25.f;
+            averagedY = averagedY/25.f;
+            averagedZ = averagedZ/25.f;
+            averagedTime = averagedTime/25;
+            outputString = averagedX + "," + averagedY + "," + averagedZ + "," + averagedTime;
+            //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+            out.println(outputString);
+            count = 0;
+            averagedX = 0;
+            averagedY = 0;
+            averagedZ = 0;
+            averagedTime = 0;
+        }
+        //try {
+        //    Thread.sleep(200);
+        //}
+        //catch(Exception e){}
+        //counter++;
+        //Log.i("Count: ", String.valueOf(counter));
+    }
+
+    public String getCurrentValues()
+    {
+        outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + time;
+        return outputString;
     }
 }

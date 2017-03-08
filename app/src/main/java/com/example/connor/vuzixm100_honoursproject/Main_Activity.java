@@ -11,6 +11,7 @@ import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 
@@ -34,7 +35,8 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        VideoAudio vd = new VideoAudio(surfaceView, true);
+        ImageView imgView = (ImageView) findViewById(R.id.image_view);
+        VideoAudio vd = new VideoAudio(surfaceView, true, imgView);
         //VideoAudio vd2 = new VideoAudio(surfaceView, false);
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
@@ -47,13 +49,13 @@ public class Main_Activity extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        //VideoStreamer csm = new VideoStreamer(vd);
-        //Thread videoSocketListener = new Thread(csm, "Thread One");
-        //videoSocketListener.start();
+        VideoStreamer csm = new VideoStreamer(vd);
+        Thread videoSocketListener = new Thread(csm, "Thread One");
+        videoSocketListener.start();
 
-        //AccelerometerStreamer as = new AccelerometerStreamer(this);
-        //Thread accelerometerSocketListener = new Thread(as, "Thread One");
-        //accelerometerSocketListener.start();
+        AccelerometerStreamer as = new AccelerometerStreamer(this);
+        Thread accelerometerSocketListener = new Thread(as, "Thread One");
+        accelerometerSocketListener.start();
 
     }
 

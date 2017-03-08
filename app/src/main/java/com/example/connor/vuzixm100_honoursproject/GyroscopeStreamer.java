@@ -10,18 +10,17 @@ import java.net.ServerSocket;
 import java.net.Socket;
 
 /**
- * Created by Connor on 01/03/2017.
- *
+ * Created by Connor on 03/03/2017.
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
-public class AccelerometerStreamer  implements Runnable
+public class GyroscopeStreamer implements Runnable
 {
-    private AccelerometerHandler ah;
-    private String TAG = "AccelerometerStreamer: ";
+    private GyroscopeHandler gh;
+    private String TAG = "GyroscopeStreamer: ";
     private Context context;
 
-    public AccelerometerStreamer(Context context)
+    public GyroscopeStreamer(Context context)
     {
         this.context = context;
     }
@@ -41,15 +40,7 @@ public class AccelerometerStreamer  implements Runnable
             client = sv.accept();
             Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
-            ah = new AccelerometerHandler(context, out);
-                //out.println(ah.getCurrentValues());
-                //try
-                //{
-                //    Thread.sleep(200);
-                //}
-                //catch(Exception e){}
-            //}
-
+            //gh = new GyroscopeStreamer(context, out);
             //while(true)
             //{
             //    try {
@@ -63,4 +54,5 @@ public class AccelerometerStreamer  implements Runnable
         }
         catch(IOException e) {Log.e("Error: ", e.toString());}
     }
+
 }

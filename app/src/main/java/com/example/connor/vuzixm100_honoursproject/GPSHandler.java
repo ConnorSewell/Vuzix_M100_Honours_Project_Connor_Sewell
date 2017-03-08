@@ -18,12 +18,12 @@ import java.security.Security;
  * https://developer.android.com/guide/topics/location/strategies.html
  * ^ Used throughout class. Time of reference: 25/01/2017 @ 20:05
  */
-public class GPS
+public class GPSHandler
 {
     private LocationManager lms;
     private LocationManager locationManager;
 
-    public GPS(Context context)
+    public GPSHandler(Context context)
     {
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 

@@ -17,8 +17,16 @@
 
     <SurfaceView
         android:id="@+id/camera_preview"
-        android:layout_width="425dp"
-        android:layout_height="fill_parent"
+        android:layout_width="225dp"
+        android:layout_height="225dp"
+        android:layout_weight="1"
+        />
+
+    <ImageView
+        android:id="@+id/image_view"
+        android:layout_width="225dp"
+        android:layout_height="225dp"
+        android:layout_toRightOf="@+id/camera_preview"
         android:layout_weight="1"
         />
 

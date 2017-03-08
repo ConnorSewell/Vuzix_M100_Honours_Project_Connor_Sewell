@@ -42,13 +42,13 @@ public class VideoStreamer implements Runnable
         try
         {
             Log.i(TAG, "Socket opened...");
-            sv = new ServerSocket(8888);
-            client = sv.accept();
+            //sv = new ServerSocket(8888);
+            //client = sv.accept();
             Log.i(TAG, "Connected... Socket Accepted");
-            vd.init(client);
+            vd.init();
             Log.i(TAG, "Video Initialised");
             //sv.close();
         }
-        catch(IOException e) {Log.e("Error: ", e.toString());}
+        catch(Exception e) {Log.e("Error: ", e.toString());}
     }
 }
