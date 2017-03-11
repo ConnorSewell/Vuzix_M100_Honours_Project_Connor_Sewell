@@ -6,6 +6,12 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.util.Log;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.PrintWriter;
 import java.math.*;
 
 /**
@@ -18,18 +24,48 @@ public class GyroscopeHandler implements SensorEventListener
     private SensorManager mSensorManager;
     private Sensor gyroscopeSensor;
     private Context context;
+    private PrintWriter out;
+    String outputDirectory;
+    boolean streamMode;
 
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
     private float EPSILON = 0.00000001f;
 
-    public GyroscopeHandler(Context context)
+    private FileWriter outputFileWriter;
+    private File gyroscopeOutputFile;
+
+    private String TAG = "GyroscopeHandler";
+
+
+    public GyroscopeHandler(Context context, String outputDirectory, boolean streamMode)
     {
         this.context = context;
+        this.outputDirectory = outputDirectory;
+        this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
-        gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
-        mSensorManager.registerListener(this, gyroscopeSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
+
+        gyroscopeOutputFile = new File(outputDirectory + File.separator + "TestGyroscope.txt");
+        try
+        {
+            outputFileWriter = new FileWriter(gyroscopeOutputFile);
+        }
+        catch(IOException e)
+        {
+            Log.e(TAG, "File not found...");
+        }
+    }
+
+    public void setOutputPoint(PrintWriter out)
+    {
+        this.out = out;
+    }
+
+    public void registerSensorListener()
+    {
+        mSensorManager.registerListener(this, gyroscopeSensor, 20000);
     }
 
     @Override
@@ -37,6 +73,13 @@ public class GyroscopeHandler implements SensorEventListener
     {
         // Do something here if sensor accuracy changes.
     }
+
+    String outputString;
+    int count = 0;
+    float averagedX = 0.f;
+    float averagedY = 0.f;
+    float averagedZ = 0.f;
+    long averagedTime = 0;
 
     @Override
     public final void onSensorChanged(SensorEvent event)
@@ -64,13 +107,50 @@ public class GyroscopeHandler implements SensorEventListener
             deltaRotationVector[2] = sinThetaOverTwo * axisZ;
             deltaRotationVector[3] = cosThetaOverTwo;
 
+            averagedX = averagedX + axisX;
+            averagedY = averagedY + axisY;
+            averagedZ = averagedZ + axisZ;
+            averagedTime = averagedTime + event.timestamp;
+            count++;
+
+            if(count == 15)
+            {
+                averagedX = averagedX/15.f;
+                averagedY = averagedY/15.f;
+                averagedZ = averagedZ/15.f;
+                averagedTime = averagedTime/15;
+                outputString = axisX + "," + axisY + "," + axisZ + "," + event.timestamp;
+                out.println(outputString);
+                count = 0;
+                averagedX = 0;
+                averagedY = 0;
+                averagedZ = 0;
+                averagedTime = 0;
+            }
+
          }
         timestamp = event.timestamp;
         float[] deltaRotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
 
+        if(!streamMode)
+            writeToFile();
+
+
         // User code should concatenate the delta rotation we computed with the current rotation
         // in order to get the updated rotation.
         // rotationCurrent = rotationCurrent * deltaRotationMatrix;
+    }
+
+    private void writeToFile()
+    {
+        try
+        {
+            outputFileWriter.write(outputString);
+        }
+        catch(IOException e)
+        {
+            Log.e(TAG, e.toString());
+        }
     }
 }

@@ -8,10 +8,13 @@ import android.media.MediaRecorder;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Bundle;
+import android.os.Environment;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Toast;
+
+import java.io.File;
 
 
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
@@ -26,6 +29,9 @@ public class Main_Activity extends Activity
     IntentFilter mIntentFilter;
 
     public String inetAddress;
+    File mediaStorageDir;
+
+    boolean streamMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -33,7 +39,7 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        VideoCapture vd = new VideoCapture(surfaceView, true);
+
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -45,14 +51,47 @@ public class Main_Activity extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        VideoStreamer csm = new VideoStreamer(vd);
-        Thread videoSocketListener = new Thread(csm, "Thread One");
+        //Ref here...
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/ACELP");
+
+        if (!mediaStorageDir.exists())
+        {
+            if (!mediaStorageDir.mkdirs())
+            {
+                System.out.println("Failed to create directory...");
+            }
+        }
+
+        String outputDirectory = mediaStorageDir.getPath();
+
+        streamMode = true;
+
+        VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode);
+        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
+        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
+       // ah.register();
+        //vd.init();
+
+        if(streamMode) {
+          startStreamThreads(vd, ah, gh);
+        }
+        GPSHandler gps = new GPSHandler(this, this);
+
+    }
+
+    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh)
+    {
+        VideoStreamer csm = new VideoStreamer(vc);
+        Thread videoSocketListener = new Thread(csm, "Thread: Video");
         videoSocketListener.start();
 
-        AccelerometerStreamer as = new AccelerometerStreamer(this);
-        Thread accelerometerSocketListener = new Thread(as, "Thread One");
+        AccelerometerStreamer as = new AccelerometerStreamer(this, ah);
+        Thread accelerometerSocketListener = new Thread(as, "Thread: Accelerometer");
         accelerometerSocketListener.start();
 
+        GyroscopeStreamer gs = new GyroscopeStreamer(this, gh);
+        Thread gyroscopeSocketListener = new Thread(gs, "Thread: Gyroscope");
+        gyroscopeSocketListener.start();
     }
 
     public void addClient(String address)
@@ -61,23 +100,19 @@ public class Main_Activity extends Activity
         Toast.makeText(this, "Result: " + inetAddress, Toast.LENGTH_LONG).show();
     }
 
-    //public void newSocket()
-    //{
-    //    new VideoStreamer(this).execute();
-    //}
 
     @Override
     protected void onResume()
     {
         super.onResume();
-        registerReceiver(mReceiver, mIntentFilter);
+        //registerReceiver(mReceiver, mIntentFilter);
     }
 
     @Override
     protected void onPause()
     {
         super.onPause();
-        unregisterReceiver(mReceiver);
+        //unregisterReceiver(mReceiver);
     }
 
     @Override

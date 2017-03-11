@@ -9,6 +9,7 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
+import android.widget.Toast;
 
 
 import java.security.Security;
@@ -22,10 +23,20 @@ public class GPSHandler
 {
     private LocationManager lms;
     private LocationManager locationManager;
+    public final Activity activity2;
 
-    public GPSHandler(Context context)
+    public GPSHandler(Context context, Activity activity)
     {
+        activity2 = activity;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
+        System.out.println("HEHEHEHEH");
+        //Toast.makeText(activity2, "Tester", Toast.LENGTH_LONG).show();
+
+
+        if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
+        {
+            Toast.makeText(activity2, "GPS Enabled", Toast.LENGTH_LONG).show();
+        }
 
         LocationListener locationListener = new LocationListener()
         {
@@ -34,6 +45,8 @@ public class GPSHandler
             {
                 System.out.println("Longitude: " + location.getLongitude());
                 System.out.println("Latitude: " + location.getLatitude());
+
+                //Toast.makeText(activity2, "Longitude: " + location.getLongitude(), Toast.LENGTH_LONG).show();
             }
 
             @Override

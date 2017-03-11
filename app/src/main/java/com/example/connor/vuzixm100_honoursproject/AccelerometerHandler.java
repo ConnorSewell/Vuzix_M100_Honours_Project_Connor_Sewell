@@ -8,6 +8,10 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
 
 /**
@@ -26,17 +30,45 @@ public class AccelerometerHandler implements SensorEventListener
     private long upTimeBeforeStart;
     private float x,y,z;
     private long time;
-    public AccelerometerHandler(Context context, PrintWriter out)
+    private String outputDirectory;
+    //private FileOutputStream writer;
+    private FileWriter outputFileWriter;
+    private String TAG = "AccelerometerHandler: ";
+    File accelerometerTextFile;
+    boolean streamMode;
+
+    public AccelerometerHandler(Context context, String outputDirectory, boolean streamMode)
     {
         this.context = context;
+        this.outputDirectory = outputDirectory;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gravity = new float[3];
         linearAcceleration = new float[3];
         //Max sample rate
         this.out = out;
-        mSensorManager.registerListener(this, accelerometerSensor, SensorManager.SENSOR_DELAY_FASTEST);
+        this.streamMode = streamMode;
 
+        if(!streamMode)
+        {
+            accelerometerTextFile = new File(outputDirectory + File.separator + "TestAccelerometer.txt");
+            try {
+                outputFileWriter = new FileWriter(accelerometerTextFile);
+            } catch (IOException e) {
+                Log.e(TAG, "File not found...");
+            }
+        }
+
+    }
+
+    public void registerSensorListener()
+    {
+        mSensorManager.registerListener(this, accelerometerSensor, 20000);
+    }
+
+    public void setOutputPoint(PrintWriter out)
+    {
+        this.out = out;
     }
 
     @Override
@@ -71,20 +103,40 @@ public class AccelerometerHandler implements SensorEventListener
         averagedTime = averagedTime + event.timestamp;
         count++;
 
-        if(count == 25)
+        if(count == 15)
         {
-            averagedX = averagedX/25.f;
-            averagedY = averagedY/25.f;
-            averagedZ = averagedZ/25.f;
-            averagedTime = averagedTime/25;
+            averagedX = averagedX/15.f;
+            averagedY = averagedY/15.f;
+            averagedZ = averagedZ/15.f;
+            averagedTime = averagedTime/15;
             outputString = averagedX + "," + averagedY + "," + averagedZ + "," + averagedTime;
             //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+
+            if(streamMode)
             out.println(outputString);
+
             count = 0;
             averagedX = 0;
             averagedY = 0;
             averagedZ = 0;
             averagedTime = 0;
+        }
+
+        if(!streamMode)
+        writeToFile();
+    }
+
+    private void writeToFile()
+    {
+        Log.e("Write called: ", "...");
+
+        try
+        {
+            outputFileWriter.write("Test");
+        }
+        catch(IOException e)
+        {
+            Log.e(TAG, "Write failed...");
         }
     }
 

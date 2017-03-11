@@ -23,9 +23,11 @@ public class AccelerometerStreamer  implements Runnable
     private String TAG = "AccelerometerStreamer: ";
     private Context context;
 
-    public AccelerometerStreamer(Context context)
+
+    public AccelerometerStreamer(Context context, AccelerometerHandler ah)
     {
         this.context = context;
+        this.ah = ah;
     }
 
     @Override
@@ -43,7 +45,9 @@ public class AccelerometerStreamer  implements Runnable
             client = sv.accept();
             Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
-            ah = new AccelerometerHandler(context, out);
+            ah.setOutputPoint(out);
+            ah.registerSensorListener();
+            //ah.register();
         }
         catch(IOException e) {Log.e("Error: ", e.toString());}
     }

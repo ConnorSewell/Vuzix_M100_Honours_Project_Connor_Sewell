@@ -16,13 +16,14 @@ import java.net.Socket;
  */
 public class GyroscopeStreamer implements Runnable
 {
-    private GyroscopeHandler gh;
     private String TAG = "GyroscopeStreamer: ";
     private Context context;
+    private GyroscopeHandler ga;
 
-    public GyroscopeStreamer(Context context)
+    public GyroscopeStreamer(Context context, GyroscopeHandler ga)
     {
         this.context = context;
+        this.ga = ga;
     }
 
     @Override
@@ -36,19 +37,12 @@ public class GyroscopeStreamer implements Runnable
         try
         {
             Log.i(TAG, "Socket opened...");
-            sv = new ServerSocket(7777);
+            sv = new ServerSocket(4444);
             client = sv.accept();
             Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
-            //gh = new GyroscopeStreamer(context, out);
-            //while(true)
-            //{
-            //    try {
-            //        Thread.sleep(200);
-            //    }
-            //    catch(Exception e){}
-            //    out.write(ah.getCurrentValues());
-            //}
+            ga.setOutputPoint(out);
+            ga.registerSensorListener();
 
             //sv.close();
         }

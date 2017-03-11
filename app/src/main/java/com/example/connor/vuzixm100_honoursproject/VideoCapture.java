@@ -48,6 +48,8 @@ public class VideoCapture implements SurfaceHolder.Callback
     boolean mr1;
     boolean previewStreaming;
     DataOutputStream outputPoint;
+    String outputDirectory;
+    boolean streamMode;
 
     private String TAG = "Video Audio Class: ";
 
@@ -65,7 +67,8 @@ public class VideoCapture implements SurfaceHolder.Callback
                 int height = parameters.getPreviewSize().height;
                 YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
                 ByteArrayOutputStream out = new ByteArrayOutputStream();
-                yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+                //yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+                yuv.compressToJpeg(new Rect(0, 0, width,height), 50, out); //Try this quality...
                 byte[] byteArray = out.toByteArray();
                 try {
                     //http://stackoverflow.com/questions/2878867/how-to-send-an-array-of-bytes-over-a-tcp-connection-java-programming
@@ -73,13 +76,16 @@ public class VideoCapture implements SurfaceHolder.Callback
                     //created in VideoStreamer class. Accessed: 08/03/2017 @ 21:00
                     int arrayLength = byteArray.length;
                     outputPoint.writeInt(arrayLength);
-                    if (arrayLength > 0) {
+                    if (arrayLength > 0)
+                    {
                         outputPoint.write(byteArray, 0, arrayLength);
                         outputPoint.flush();
                     }
                 } catch (IOException io) {
                     Log.e(TAG, io.toString());
                 }
+
+                Log.e("FRAME: ", "new");
             }
         });
     }
@@ -89,7 +95,7 @@ public class VideoCapture implements SurfaceHolder.Callback
         this.outputPoint = outputPoint;
     }
 
-    public VideoCapture(SurfaceView surfaceView, boolean mr1)
+    public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode)
     {
         previewStreaming = false;
         //this.context = context;
@@ -99,11 +105,18 @@ public class VideoCapture implements SurfaceHolder.Callback
         parameters.setPreviewFpsRange(24000, 24000);
         parameters.setPreviewSize(320, 240);
         camera.setParameters(parameters);
-        //mr = new MediaRecorder();
+        mr = new MediaRecorder();
         mHolder = surfaceView.getHolder();
         mHolder.addCallback(this);
         this.imgView = imgView;
         //this.mr1 = mr1;
+        this.outputDirectory = outputDirectory;
+        this.streamMode = streamMode;
+
+        if(!streamMode)
+        {
+            init();
+        }
     }
 
     public void init()
@@ -111,28 +124,10 @@ public class VideoCapture implements SurfaceHolder.Callback
         camera.unlock();
         mr.setCamera(camera);
 
-        //camera.stopPreview();
-        //camera.unlock();
-
-        //Log.i(TAG, "Video init");
-
         mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
-        mr.setOutputFormat(8);
-        mr.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mr.setVideoEncoder(MediaRecorder.VideoEncoder.H264);
 
-        File mediaStorageDir = new File(Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES), "ACELP");
-
-            if (!mediaStorageDir.exists())
-            {
-                if (!mediaStorageDir.mkdirs())
-                {
-                    System.out.println("Failed to create directory...");
-                }
-            }
-
-        File mediaFile = new File(mediaStorageDir.getPath() + File.separator + "NewVideo.mp4");
+        File mediaFile = new File(outputDirectory + File.separator + "TestVideo.mp4");
 
         CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
@@ -141,10 +136,6 @@ public class VideoCapture implements SurfaceHolder.Callback
         mr.setProfile(cp);
 
         mr.setOutputFile(mediaFile.toString());
-        //ParcelFileDescriptor pfd = ParcelFileDescriptor.fromSocket(client);
-        //mr.setOutputFile(pfd.getFileDescriptor());
-
-       // camera.setPreviewDisplay(mHolder);
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -166,6 +157,15 @@ public class VideoCapture implements SurfaceHolder.Callback
                 }
             }
         }, 500);
+
+        //changePreviewStreamingState();
+
+        new Timer().schedule(new TimerTask() {
+            @Override
+            public void run() {
+                mr.stop();
+            }
+        }, 30000);
     }
 
 
@@ -175,6 +175,7 @@ public class VideoCapture implements SurfaceHolder.Callback
         {
             camera.setPreviewDisplay(mHolder);
             camera.startPreview();
+
         }
         catch(Exception e) {
             Log.e(TAG, e.toString());
@@ -198,7 +199,8 @@ public class VideoCapture implements SurfaceHolder.Callback
         try {
             //camera.stopPreview();
             //camera.release();
-        } catch (Exception e) {
+        } catch (Exception e)
+        {
             // ignore: tried to stop a non-existent preview
         }
 

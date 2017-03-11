@@ -45,7 +45,7 @@ public class VideoStreamer implements Runnable
             vd.setOutputPoint(dos);
             vd.changePreviewStreamingState();
             Log.i(TAG, "Connected... Socket Accepted");
-            vd.init();
+            //vd.init();
             Log.i(TAG, "Video Initialised");
 
             //sv.close();
