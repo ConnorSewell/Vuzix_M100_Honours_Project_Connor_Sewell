@@ -16,9 +16,7 @@ import java.net.Socket;
  */
 public class VideoStreamer implements Runnable
 {
-    Context context;
-    VideoCapture vd;
-
+    private VideoCapture vd;
     private String TAG = "VideoStreamer: ";
 
     public VideoStreamer(VideoCapture vd)
@@ -31,25 +29,22 @@ public class VideoStreamer implements Runnable
     {
         ServerSocket sv;
         Socket client;
-        InputStream inputStream;
         OutputStream os;
         DataOutputStream dos;
 
         try
         {
-            Log.i(TAG, "Socket opened...");
             sv = new ServerSocket(8888);
             client = sv.accept();
             os = client.getOutputStream();
             dos = new DataOutputStream(os);
             vd.setOutputPoint(dos);
             vd.changePreviewStreamingState();
-            Log.i(TAG, "Connected... Socket Accepted");
-            //vd.init();
-            Log.i(TAG, "Video Initialised");
-
-            //sv.close();
         }
-        catch(Exception e) {Log.e("Error: ", e.toString());}
+        catch(Exception e)
+        {
+            Log.e("Error: ", e.toString());
+            run();
+        }
     }
 }

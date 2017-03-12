@@ -40,78 +40,23 @@ import java.util.TimerTask;
  */
 public class VideoCapture implements SurfaceHolder.Callback
 {
-    private Context context;
     private Camera camera;
     private SurfaceView surfaceView;
     private SurfaceHolder mHolder;
-    private MediaRecorder mr;
-    boolean mr1;
-    boolean previewStreaming;
-    DataOutputStream outputPoint;
-    String outputDirectory;
-    boolean streamMode;
-
+    private MediaRecorder mr = new MediaRecorder();
+    private DataOutputStream outputPoint;
+    private String outputDirectory;
+    private boolean streamMode;
     private String TAG = "Video Audio Class: ";
-
     private ImageView imgView;
-
-    public void changePreviewStreamingState()
-    {
-        camera.setPreviewCallback(new Camera.PreviewCallback() {
-            @Override
-            public void onPreviewFrame(final byte[] data, Camera camera) {
-                //http://stackoverflow.com/questions/20298699/onpreviewframe-data-image-to-imageview
-                //^ Accessed: 08/03/2017 @ 14:00
-                Camera.Parameters parameters = camera.getParameters();
-                int width = parameters.getPreviewSize().width;
-                int height = parameters.getPreviewSize().height;
-                YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
-                ByteArrayOutputStream out = new ByteArrayOutputStream();
-                //yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
-                yuv.compressToJpeg(new Rect(0, 0, width,height), 50, out); //Try this quality...
-                byte[] byteArray = out.toByteArray();
-                try {
-                    //http://stackoverflow.com/questions/2878867/how-to-send-an-array-of-bytes-over-a-tcp-connection-java-programming
-                    //^ This method of sending byte array taken from above array (starts in VideoStreamer class)
-                    //created in VideoStreamer class. Accessed: 08/03/2017 @ 21:00
-                    int arrayLength = byteArray.length;
-                    outputPoint.writeInt(arrayLength);
-                    if (arrayLength > 0)
-                    {
-                        outputPoint.write(byteArray, 0, arrayLength);
-                        outputPoint.flush();
-                    }
-                } catch (IOException io) {
-                    Log.e(TAG, io.toString());
-                }
-
-                Log.e("FRAME: ", "new");
-            }
-        });
-    }
-
-    public void setOutputPoint(DataOutputStream outputPoint)
-    {
-        this.outputPoint = outputPoint;
-    }
 
     public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode)
     {
-        previewStreaming = false;
-        //this.context = context;
         this.surfaceView = surfaceView;
-        camera = Camera.open();
-        Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewFpsRange(24000, 24000);
-        parameters.setPreviewSize(320, 240);
-        camera.setParameters(parameters);
-        mr = new MediaRecorder();
-        mHolder = surfaceView.getHolder();
-        mHolder.addCallback(this);
-        this.imgView = imgView;
-        //this.mr1 = mr1;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
+
+        setCameraProperties();
 
         if(!streamMode)
         {
@@ -119,22 +64,34 @@ public class VideoCapture implements SurfaceHolder.Callback
         }
     }
 
-    public void init()
+    private void setCameraProperties()
+    {
+        camera = Camera.open();
+
+        Camera.Parameters parameters = camera.getParameters();
+        parameters.setPreviewFpsRange(24000, 24000);
+        parameters.setPreviewSize(320, 240);
+        camera.setParameters(parameters);
+
+        mHolder = surfaceView.getHolder();
+        mHolder.addCallback(this);
+    }
+
+    private void init()
     {
         camera.unlock();
-        mr.setCamera(camera);
 
+        mr.setCamera(camera);
         mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-        File mediaFile = new File(outputDirectory + File.separator + "TestVideo.mp4");
-
         CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
         cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
-
         cp.videoFrameRate = 24;
+
         mr.setProfile(cp);
 
+        File mediaFile = new File(outputDirectory + File.separator + "TestVideo.mp4");
         mr.setOutputFile(mediaFile.toString());
 
         new Timer().schedule(new TimerTask() {
@@ -158,8 +115,6 @@ public class VideoCapture implements SurfaceHolder.Callback
             }
         }, 500);
 
-        //changePreviewStreamingState();
-
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
@@ -168,7 +123,46 @@ public class VideoCapture implements SurfaceHolder.Callback
         }, 30000);
     }
 
+    public void setOutputPoint(DataOutputStream outputPoint)
+    {
+        this.outputPoint = outputPoint;
+    }
 
+    public void changePreviewStreamingState()
+    {
+        camera.setPreviewCallback(new Camera.PreviewCallback() {
+            @Override
+            public void onPreviewFrame(final byte[] data, Camera camera) {
+                //http://stackoverflow.com/questions/20298699/onpreviewframe-data-image-to-imageview
+                //^ Accessed: 08/03/2017 @ 14:00
+                Camera.Parameters parameters = camera.getParameters();
+                int width = parameters.getPreviewSize().width;
+                int height = parameters.getPreviewSize().height;
+
+                YuvImage yuv = new YuvImage(data, parameters.getPreviewFormat(), width, height, null);
+                ByteArrayOutputStream out = new ByteArrayOutputStream();
+                yuv.compressToJpeg(new Rect(0, 0, width, height), 50, out);
+                byte[] byteArray = out.toByteArray();
+
+                try {
+                    //http://stackoverflow.com/questions/2878867/how-to-send-an-array-of-bytes-over-a-tcp-connection-java-programming
+                    //^ This method of sending byte array taken from above array (starts in VideoStreamer class)
+                    //created in VideoStreamer class. Accessed: 08/03/2017 @ 21:00
+                    int arrayLength = byteArray.length;
+                    outputPoint.writeInt(arrayLength);
+                    if (arrayLength > 0)
+                    {
+                        outputPoint.write(byteArray, 0, arrayLength);
+                        outputPoint.flush();
+                    }
+                } catch (IOException io) {
+                    Log.e(TAG, io.toString());
+                }
+            }
+        });
+    }
+
+    @Override
     public void surfaceCreated(SurfaceHolder holder)
     {
         try
@@ -177,7 +171,8 @@ public class VideoCapture implements SurfaceHolder.Callback
             camera.startPreview();
 
         }
-        catch(Exception e) {
+        catch(Exception e)
+        {
             Log.e(TAG, e.toString());
         }
     }
@@ -192,25 +187,6 @@ public class VideoCapture implements SurfaceHolder.Callback
         if (mHolder.getSurface() == null) {
             // preview surface does not exist
             return;
-
-        }
-
-        // stop preview before making changes
-        try {
-            //camera.stopPreview();
-            //camera.release();
-        } catch (Exception e)
-        {
-            // ignore: tried to stop a non-existent preview
-        }
-
-        try
-        {
-            //camera.setPreviewDisplay(mHolder);
-            //camera.startPreview();
-
-        } catch (Exception e) {
-            System.out.println("Error on camera preview: " + String.valueOf(e));
         }
     }
 }

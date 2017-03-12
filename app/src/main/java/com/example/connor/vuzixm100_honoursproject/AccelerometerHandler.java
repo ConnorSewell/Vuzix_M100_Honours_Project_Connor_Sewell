@@ -25,34 +25,32 @@ public class AccelerometerHandler implements SensorEventListener
     private Sensor accelerometerSensor;
     private Context context;
     private float[] gravity, linearAcceleration;
-    String infoLogTag = "INFO: ";
     private PrintWriter out;
-    private long upTimeBeforeStart;
-    private float x,y,z;
     private long time;
+
     private String outputDirectory;
-    //private FileOutputStream writer;
     private FileWriter outputFileWriter;
+    private File accelerometerTextFile;
+
     private String TAG = "AccelerometerHandler: ";
-    File accelerometerTextFile;
-    boolean streamMode;
+
+    private boolean streamMode;
 
     public AccelerometerHandler(Context context, String outputDirectory, boolean streamMode)
     {
         this.context = context;
         this.outputDirectory = outputDirectory;
+        this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         accelerometerSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_ACCELEROMETER);
         gravity = new float[3];
         linearAcceleration = new float[3];
-        //Max sample rate
-        this.out = out;
-        this.streamMode = streamMode;
 
         if(!streamMode)
         {
             accelerometerTextFile = new File(outputDirectory + File.separator + "TestAccelerometer.txt");
-            try {
+            try
+            {
                 outputFileWriter = new FileWriter(accelerometerTextFile);
             } catch (IOException e) {
                 Log.e(TAG, "File not found...");
@@ -74,16 +72,16 @@ public class AccelerometerHandler implements SensorEventListener
     @Override
     public final void onAccuracyChanged(Sensor sensor, int accuracy)
     {
-        Log.i(infoLogTag, "Accelerometer accuracy changed...");
+        Log.i(TAG, "Accelerometer accuracy changed...");
     }
 
-    String outputString;
-    int count = 0;
-    float averagedX = 0.f;
-    float averagedY = 0.f;
-    float averagedZ = 0.f;
-    long averagedTime = 0;
-    final float alpha = 0.8f;
+    private String outputString;
+    private int count = 0;
+    private float averagedX = 0.f;
+    private float averagedY = 0.f;
+    private float averagedZ = 0.f;
+    private long averagedTime = 0;
+    private final float alpha = 0.8f;
 
     @Override
     public final void onSensorChanged(SensorEvent event)
@@ -128,21 +126,13 @@ public class AccelerometerHandler implements SensorEventListener
 
     private void writeToFile()
     {
-        Log.e("Write called: ", "...");
-
         try
         {
-            outputFileWriter.write("Test");
+            outputFileWriter.write(outputString);
         }
         catch(IOException e)
         {
             Log.e(TAG, "Write failed...");
         }
-    }
-
-    public String getCurrentValues()
-    {
-        outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + time;
-        return outputString;
     }
 }

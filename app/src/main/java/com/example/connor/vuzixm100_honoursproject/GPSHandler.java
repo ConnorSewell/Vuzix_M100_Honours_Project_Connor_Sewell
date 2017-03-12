@@ -23,19 +23,16 @@ public class GPSHandler
 {
     private LocationManager lms;
     private LocationManager locationManager;
-    public final Activity activity2;
+    private final Activity activity;
 
-    public GPSHandler(Context context, Activity activity)
+    public GPSHandler(Context context, Activity activity_in)
     {
-        activity2 = activity;
+        activity = activity_in;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
-        System.out.println("HEHEHEHEH");
-        //Toast.makeText(activity2, "Tester", Toast.LENGTH_LONG).show();
-
 
         if(locationManager.isProviderEnabled(LocationManager.GPS_PROVIDER))
         {
-            Toast.makeText(activity2, "GPS Enabled", Toast.LENGTH_LONG).show();
+            Toast.makeText(activity, "GPS Enabled", Toast.LENGTH_LONG).show();
         }
 
         LocationListener locationListener = new LocationListener()
@@ -43,33 +40,34 @@ public class GPSHandler
             @Override
             public void onLocationChanged(Location location)
             {
-                System.out.println("Longitude: " + location.getLongitude());
-                System.out.println("Latitude: " + location.getLatitude());
-
-                //Toast.makeText(activity2, "Longitude: " + location.getLongitude(), Toast.LENGTH_LONG).show();
+                Toast.makeText(activity, "Longitude: " + location.getLongitude(), Toast.LENGTH_LONG).show();
             }
 
             @Override
-            public void onStatusChanged(String provider, int status, Bundle extras) {
-                System.out.println("Changed");
+            public void onStatusChanged(String provider, int status, Bundle extras)
+            {
+                Toast.makeText(activity, "Status Changed", Toast.LENGTH_LONG).show();
             }
 
             @Override
-            public void onProviderEnabled(String provider) {
-                System.out.println("Enabled");
+            public void onProviderEnabled(String provider)
+            {
+                Toast.makeText(activity, "Provider enabled (GPS)", Toast.LENGTH_LONG).show();
             }
 
             @Override
-            public void onProviderDisabled(String provider) {
-                System.out.println("Disabled");
+            public void onProviderDisabled(String provider)
+            {
+                Toast.makeText(activity, "Provider disabled (GPS)", Toast.LENGTH_LONG).show();
             }
         };
 
         try
         {
             locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
-        } catch (SecurityException e) {
-            System.out.println("Cannot Access");
+        } catch (SecurityException e)
+        {
+            Toast.makeText(activity, "Security exception: " + e.toString(), Toast.LENGTH_LONG).show();
         }
     }
 }

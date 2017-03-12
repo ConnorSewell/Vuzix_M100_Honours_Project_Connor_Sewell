@@ -25,17 +25,20 @@ public class GyroscopeHandler implements SensorEventListener
     private Sensor gyroscopeSensor;
     private Context context;
     private PrintWriter out;
-    String outputDirectory;
-    boolean streamMode;
-
+    private String outputDirectory;
+    private boolean streamMode;
     private static final float NS2S = 1.0f / 1000000000.0f;
     private final float[] deltaRotationVector = new float[4];
     private float timestamp;
     private float EPSILON = 0.00000001f;
-
+    private String outputString;
+    private int count = 0;
+    private float averagedX = 0.f;
+    private float averagedY = 0.f;
+    private float averagedZ = 0.f;
+    private long averagedTime = 0;
     private FileWriter outputFileWriter;
     private File gyroscopeOutputFile;
-
     private String TAG = "GyroscopeHandler";
 
 
@@ -46,7 +49,6 @@ public class GyroscopeHandler implements SensorEventListener
         this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-
         gyroscopeOutputFile = new File(outputDirectory + File.separator + "TestGyroscope.txt");
         try
         {
@@ -74,13 +76,6 @@ public class GyroscopeHandler implements SensorEventListener
         // Do something here if sensor accuracy changes.
     }
 
-    String outputString;
-    int count = 0;
-    float averagedX = 0.f;
-    float averagedY = 0.f;
-    float averagedZ = 0.f;
-    long averagedTime = 0;
-
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
@@ -93,7 +88,8 @@ public class GyroscopeHandler implements SensorEventListener
 
             float omegaMagnitude = (float)Math.sqrt(axisX*axisX + axisY*axisY + axisZ*axisZ);
 
-            if (omegaMagnitude > EPSILON) {
+            if (omegaMagnitude > EPSILON)
+            {
                 axisX /= omegaMagnitude;
                 axisY /= omegaMagnitude;
                 axisZ /= omegaMagnitude;
@@ -135,7 +131,6 @@ public class GyroscopeHandler implements SensorEventListener
 
         if(!streamMode)
             writeToFile();
-
 
         // User code should concatenate the delta rotation we computed with the current rotation
         // in order to get the updated rotation.

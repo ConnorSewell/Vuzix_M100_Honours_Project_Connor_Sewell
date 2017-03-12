@@ -23,7 +23,6 @@ public class AccelerometerStreamer  implements Runnable
     private String TAG = "AccelerometerStreamer: ";
     private Context context;
 
-
     public AccelerometerStreamer(Context context, AccelerometerHandler ah)
     {
         this.context = context;
@@ -40,15 +39,16 @@ public class AccelerometerStreamer  implements Runnable
 
         try
         {
-            Log.i(TAG, "Socket opened...");
             sv = new ServerSocket(7777);
             client = sv.accept();
-            Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
             ah.setOutputPoint(out);
             ah.registerSensorListener();
-            //ah.register();
         }
-        catch(IOException e) {Log.e("Error: ", e.toString());}
+        catch(IOException e)
+        {
+            Log.e(TAG, e.toString());
+            run();
+        }
     }
 }

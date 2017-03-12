@@ -18,12 +18,12 @@ public class GyroscopeStreamer implements Runnable
 {
     private String TAG = "GyroscopeStreamer: ";
     private Context context;
-    private GyroscopeHandler ga;
+    private GyroscopeHandler gh;
 
-    public GyroscopeStreamer(Context context, GyroscopeHandler ga)
+    public GyroscopeStreamer(Context context, GyroscopeHandler gh)
     {
         this.context = context;
-        this.ga = ga;
+        this.gh = gh;
     }
 
     @Override
@@ -36,17 +36,17 @@ public class GyroscopeStreamer implements Runnable
 
         try
         {
-            Log.i(TAG, "Socket opened...");
             sv = new ServerSocket(4444);
             client = sv.accept();
-            Log.i(TAG, "Client accepted...");
             out = new PrintWriter(client.getOutputStream(), true);
-            ga.setOutputPoint(out);
-            ga.registerSensorListener();
-
-            //sv.close();
+            gh.setOutputPoint(out);
+            gh.registerSensorListener();
         }
-        catch(IOException e) {Log.e("Error: ", e.toString());}
+        catch(IOException e)
+        {
+            Log.e(TAG, e.toString());
+            run();
+        }
     }
 
 }

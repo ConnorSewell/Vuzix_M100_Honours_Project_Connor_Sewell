@@ -13,25 +13,21 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Toast;
-
 import java.io.File;
-
 
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
 //^Used for network related code (WifiP2pManager, Channel, BroadcastReceiver...). Accessed 08/02/2017 @ 14:55
-public class Main_Activity extends Activity
+public class Main extends Activity
 {
+    private String inetAddress;
     private SurfaceView surfaceView;
-    MediaRecorder mr = new MediaRecorder();
-    WifiP2pManager mManager;
-    Channel mChannel;
-    BroadcastReceiver mReceiver;
-    IntentFilter mIntentFilter;
-
-    public String inetAddress;
-    File mediaStorageDir;
-
-    boolean streamMode;
+    private MediaRecorder mr = new MediaRecorder();
+    private WifiP2pManager mManager;
+    private Channel mChannel;
+    private BroadcastReceiver mReceiver;
+    private IntentFilter mIntentFilter;
+    private File mediaStorageDir;
+    private boolean streamMode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -39,7 +35,6 @@ public class Main_Activity extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -63,20 +58,18 @@ public class Main_Activity extends Activity
         }
 
         String outputDirectory = mediaStorageDir.getPath();
-
         streamMode = true;
 
         VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode);
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
         GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
-       // ah.register();
-        //vd.init();
 
-        if(streamMode) {
-          startStreamThreads(vd, ah, gh);
+        if(streamMode)
+        {
+            startStreamThreads(vd, ah, gh);
         }
-        GPSHandler gps = new GPSHandler(this, this);
 
+        GPSHandler gps = new GPSHandler(this, this);
     }
 
     private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh)
@@ -94,48 +87,20 @@ public class Main_Activity extends Activity
         gyroscopeSocketListener.start();
     }
 
-    public void addClient(String address)
-    {
-        inetAddress = address;
-        Toast.makeText(this, "Result: " + inetAddress, Toast.LENGTH_LONG).show();
-    }
-
-
     @Override
     protected void onResume()
     {
         super.onResume();
-        //registerReceiver(mReceiver, mIntentFilter);
+        registerReceiver(mReceiver, mIntentFilter);
     }
 
     @Override
     protected void onPause()
     {
         super.onPause();
-        //unregisterReceiver(mReceiver);
+        unregisterReceiver(mReceiver);
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main_, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        int id = item.getItemId();
-
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
-        }
-
-        return super.onOptionsItemSelected(item);
-    }
 }
 
 

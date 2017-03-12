@@ -1,4 +1,4 @@
-package com.example.connor.vuzixm100_honoursproject;
+package com.example.connor.vuzixm100_honoursproject.Archived;
 
 import android.content.Context;
 import android.hardware.SensorManager;
@@ -17,11 +17,8 @@ public class SensorHandler
 {
     private SensorManager mSensorManager;
     private Context context;
-
-
     private String sensorTAG = "Sensor: ";
-
-    int i;
+    private int i;
 
     public SensorHandler(Context context)
     {

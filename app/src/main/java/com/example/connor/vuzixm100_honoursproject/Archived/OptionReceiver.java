@@ -1,8 +1,9 @@
-package com.example.connor.vuzixm100_honoursproject;
+package com.example.connor.vuzixm100_honoursproject.Archived;
 
 import android.util.Log;
 
-import java.io.BufferedInputStream;
+import com.example.connor.vuzixm100_honoursproject.Main;
+
 import java.io.BufferedReader;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -17,9 +18,10 @@ import java.net.Socket;
  */
 public class OptionReceiver implements Runnable
 {
-    Main_Activity ma;
+    private Main ma;
+    private String TAG = "OptionReceiver: ";
 
-    public OptionReceiver(Main_Activity ma)
+    public OptionReceiver(Main ma)
     {
         this.ma = ma;
     }
@@ -51,7 +53,7 @@ public class OptionReceiver implements Runnable
                 }
             }
         }
-        catch(Exception e) {Log.e("Error: ", e.toString());}
+        catch(Exception e) {Log.e(TAG, e.toString());}
     }
 
 }
