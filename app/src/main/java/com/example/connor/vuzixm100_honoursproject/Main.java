@@ -60,19 +60,20 @@ public class Main extends Activity
         String outputDirectory = mediaStorageDir.getPath();
         streamMode = true;
 
-        VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode);
-        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
-        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
+        //VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode);
+        //AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
+        //GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
+        AudioHandler audioH = new AudioHandler();
 
         if(streamMode)
         {
-            startStreamThreads(vd, ah, gh);
+        //            startStreamThreads(vd, ah, gh, audioH);
         }
 
-        GPSHandler gps = new GPSHandler(this, this);
+        //GPSHandler gps = new GPSHandler(this, this);
     }
 
-    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh)
+    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh, AudioHandler audioH)
     {
         VideoStreamer csm = new VideoStreamer(vc);
         Thread videoSocketListener = new Thread(csm, "Thread: Video");
@@ -85,6 +86,11 @@ public class Main extends Activity
         GyroscopeStreamer gs = new GyroscopeStreamer(this, gh);
         Thread gyroscopeSocketListener = new Thread(gs, "Thread: Gyroscope");
         gyroscopeSocketListener.start();
+
+        AudioStreamer audioStreamer = new AudioStreamer(this, audioH);
+        Thread audioTester = new Thread(audioStreamer, "Thread: Audio");
+        audioTester.start();
+
     }
 
     @Override
