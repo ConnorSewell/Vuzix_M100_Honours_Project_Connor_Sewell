@@ -24,10 +24,10 @@ public class AudioStreamer implements Runnable
     private Context context;
 
 
-    public AudioStreamer(Context context, AudioHandler audioH)
+    public AudioStreamer(Context context, AudioHandler aud)
     {
         this.context = context;
-        ah = new AudioHandler();
+        ah = aud;
     }
 
     @Override
@@ -46,7 +46,6 @@ public class AudioStreamer implements Runnable
             dos = new DataOutputStream(os);
             ah.setOutputStream(dos);
             ah.startAudioStream();
-            //out = new PrintWriter(client.getOutputStream(), true);
         }
         catch(IOException e)
         {

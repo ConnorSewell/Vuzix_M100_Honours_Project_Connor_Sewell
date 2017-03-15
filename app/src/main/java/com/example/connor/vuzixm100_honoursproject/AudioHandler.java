@@ -31,35 +31,7 @@ public class AudioHandler
     public AudioHandler()
     {
         this.context = context;
-        ar = new AudioRecord(5, 8000, 2, AudioFormat.ENCODING_PCM_16BIT, 1280);
-        ar.startRecording();
-
-        AudioTrack audioTrack = new  AudioTrack(AudioManager.STREAM_VOICE_CALL, 8000, 2, AudioFormat.ENCODING_DEFAULT, 2560, AudioTrack.MODE_STREAM);
-        audioTrack.setPlaybackRate(8000);
-
-        int otherBufferSize = AudioRecord.getMinBufferSize(8000, 2, AudioFormat.ENCODING_PCM_16BIT);
-        Log.e("Other Buffer: ", String.valueOf(otherBufferSize));
-        //if (audioTrack.STATE_INITIALIZED == 1)
-        //{
-            audioTrack.play();
-        //}
-        //else if(audioTrack.STATE_INITIALIZED == 0)
-        //{
-        //    Log.e(TAG, "NOT INITIALISED");
-        //}
-        //sendAudioStream();
-
-        //boolean test = false;
-
-        while(true)
-        {
-            byte[] audioBuffer = new byte[1280];
-            ar.read(audioBuffer, 0, 1280);
-            //audioTrack.setPlaybackRate(8000);
-            //audioTrack.play();
-            audioTrack.write(audioBuffer, 0, 1280);
-       }
-       // }
+        ar = new AudioRecord(5, 44100, 2, AudioFormat.ENCODING_PCM_16BIT, 7104);
     }
 
     public void setOutputStream(DataOutputStream outputStream)
@@ -68,6 +40,7 @@ public class AudioHandler
     }
     public void startAudioStream()
     {
+        ar.startRecording();
         while(true)
         {
             byte[] audioBuffer = new byte[1280];
