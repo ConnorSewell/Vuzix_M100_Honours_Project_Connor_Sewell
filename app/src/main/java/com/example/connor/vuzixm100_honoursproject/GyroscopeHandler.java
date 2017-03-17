@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -38,6 +39,7 @@ public class GyroscopeHandler implements SensorEventListener
     private float averagedZ = 0.f;
     private long averagedTime = 0;
     private FileWriter outputFileWriter;
+    private BufferedWriter bufferedWriter;
     private File gyroscopeOutputFile;
     private String TAG = "GyroscopeHandler";
 
@@ -53,6 +55,7 @@ public class GyroscopeHandler implements SensorEventListener
         try
         {
             outputFileWriter = new FileWriter(gyroscopeOutputFile);
+            bufferedWriter = new BufferedWriter(outputFileWriter);
         }
         catch(IOException e)
         {
@@ -115,8 +118,12 @@ public class GyroscopeHandler implements SensorEventListener
                 averagedY = averagedY/15.f;
                 averagedZ = averagedZ/15.f;
                 averagedTime = averagedTime/15;
-                outputString = axisX + "," + axisY + "," + axisZ + "," + event.timestamp;
-                out.println(outputString);
+                outputString = axisX + "," + axisY + "," + axisZ + "," + event.timestamp; //Remove
+                if(streamMode)
+                {
+                    out.println(outputString);
+                }
+
                 count = 0;
                 averagedX = 0;
                 averagedY = 0;
@@ -124,13 +131,24 @@ public class GyroscopeHandler implements SensorEventListener
                 averagedTime = 0;
             }
 
+            if(!streamMode)
+            {
+                try
+                {
+                    bufferedWriter.write(axisX + "," + axisY + "," + axisZ + "," + event.timestamp);
+                    bufferedWriter.newLine();
+                }
+                catch(IOException e)
+                {
+                    Log.e(TAG, e.toString());
+                }
+            }
          }
         timestamp = event.timestamp;
         float[] deltaRotationMatrix = new float[9];
         SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
 
-        if(!streamMode)
-            writeToFile();
+        //writeToFile();
 
         // User code should concatenate the delta rotation we computed with the current rotation
         // in order to get the updated rotation.
@@ -139,13 +157,6 @@ public class GyroscopeHandler implements SensorEventListener
 
     private void writeToFile()
     {
-        try
-        {
-            outputFileWriter.write(outputString);
-        }
-        catch(IOException e)
-        {
-            Log.e(TAG, e.toString());
-        }
+
     }
 }

@@ -56,17 +56,23 @@ public class VideoCapture implements SurfaceHolder.Callback
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
 
-        setCameraProperties();
+        camera = Camera.open();
+        mHolder = surfaceView.getHolder();
+        mHolder.addCallback(this);
 
         if(!streamMode)
         {
             init();
         }
+        else
+        {
+            setCameraProperties();
+        }
     }
 
     private void setCameraProperties()
     {
-        camera = Camera.open();
+
 
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewFpsRange(24000, 24000);
@@ -85,13 +91,13 @@ public class VideoCapture implements SurfaceHolder.Callback
         mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
         mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-        CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_LOW);
+        CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
         cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
         cp.videoFrameRate = 24;
 
         mr.setProfile(cp);
 
-        File mediaFile = new File(outputDirectory + File.separator + "TestVideo.mp4");
+        File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
         mr.setOutputFile(mediaFile.toString());
 
         new Timer().schedule(new TimerTask() {

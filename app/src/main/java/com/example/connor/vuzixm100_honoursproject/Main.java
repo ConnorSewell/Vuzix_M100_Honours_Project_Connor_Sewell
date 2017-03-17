@@ -50,7 +50,7 @@ public class Main extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         //Ref here...
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/ACELP");
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/ACELP2");
 
         if (!mediaStorageDir.exists())
         {
@@ -61,7 +61,7 @@ public class Main extends Activity
         }
 
         String outputDirectory = mediaStorageDir.getPath();
-        streamMode = true;
+        streamMode = false;
 
         VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode);
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
@@ -70,6 +70,11 @@ public class Main extends Activity
         if(streamMode)
         {
             startStreamThreads(vd, ah, gh);
+        }
+        else
+        {
+            ah.registerSensorListener();
+            gh.registerSensorListener();
         }
 
         //GPSHandler gps = new GPSHandler(this, this);

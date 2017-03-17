@@ -8,6 +8,7 @@ import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
 import android.util.Log;
 
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.FileWriter;
@@ -31,6 +32,7 @@ public class AccelerometerHandler implements SensorEventListener
     private String outputDirectory;
     private FileWriter outputFileWriter;
     private File accelerometerTextFile;
+    private BufferedWriter bufferedWriter;
 
     private String TAG = "AccelerometerHandler: ";
 
@@ -48,10 +50,11 @@ public class AccelerometerHandler implements SensorEventListener
 
         if(!streamMode)
         {
-            accelerometerTextFile = new File(outputDirectory + File.separator + "TestAccelerometer.txt");
+            accelerometerTextFile = new File(outputDirectory + File.separator + "AccelerometerData.txt");
             try
             {
                 outputFileWriter = new FileWriter(accelerometerTextFile);
+                bufferedWriter = new BufferedWriter(outputFileWriter);
             } catch (IOException e) {
                 Log.e(TAG, "File not found...");
             }
@@ -120,19 +123,25 @@ public class AccelerometerHandler implements SensorEventListener
             averagedTime = 0;
         }
 
+
         if(!streamMode)
-        writeToFile();
+        {
+            try
+            {
+                bufferedWriter.write(linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp);
+                bufferedWriter.newLine();
+            }
+            catch(IOException e)
+            {
+                Log.e(TAG, "Write failed...");
+            }
+        }
+        //writeToFile();
+
     }
 
     private void writeToFile()
     {
-        try
-        {
-            outputFileWriter.write(outputString);
-        }
-        catch(IOException e)
-        {
-            Log.e(TAG, "Write failed...");
-        }
+
     }
 }

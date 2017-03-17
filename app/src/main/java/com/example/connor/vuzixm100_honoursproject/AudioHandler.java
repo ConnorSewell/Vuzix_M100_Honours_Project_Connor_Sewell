@@ -43,12 +43,12 @@ public class AudioHandler
         ar.startRecording();
         while(true)
         {
-            byte[] audioBuffer = new byte[1280];
-            ar.read(audioBuffer, 0, 1280);
+            byte[] audioBuffer = new byte[7104];
+            ar.read(audioBuffer, 0, 7104);
             try
             {
-                outputStream.writeInt(1280);
-                outputStream.write(audioBuffer, 0, 1280);
+                outputStream.writeInt(128);
+                outputStream.write(audioBuffer, 0, 7104);
                 outputStream.flush();
             }
             catch(IOException e)
