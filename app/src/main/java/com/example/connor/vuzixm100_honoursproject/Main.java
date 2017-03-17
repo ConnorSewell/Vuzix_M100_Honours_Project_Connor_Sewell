@@ -50,7 +50,7 @@ public class Main extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         //Ref here...
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/ACELP2");
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/Connor");
 
         if (!mediaStorageDir.exists())
         {

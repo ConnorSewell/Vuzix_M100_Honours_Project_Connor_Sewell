@@ -51,7 +51,7 @@ public class GyroscopeHandler implements SensorEventListener
         this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        gyroscopeOutputFile = new File(outputDirectory + File.separator + "TestGyroscope.txt");
+        gyroscopeOutputFile = new File(outputDirectory + File.separator + "GyroscopeData.txt");
         try
         {
             outputFileWriter = new FileWriter(gyroscopeOutputFile);
