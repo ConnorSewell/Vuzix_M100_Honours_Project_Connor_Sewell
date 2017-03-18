@@ -126,7 +126,7 @@ public class VideoCapture implements SurfaceHolder.Callback
             public void run() {
                 mr.stop();
             }
-        }, 30000);
+        }, 300000);
     }
 
     public void setOutputPoint(DataOutputStream outputPoint)

@@ -16,8 +16,14 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.Toast;
+
+import com.vuzix.hardware.GestureSensor;
+
 import java.io.File;
 
+//Gesture Sensor code taken from official docs: http://files.vuzix.com/Content/Upload/Driver_File_GestureSensorSDK_20160317210116857.pdf
+//^ Accessed: 18/03/2017 @ 02:00
+//
 //https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
 //^Used for network related code (WifiP2pManager, Channel, BroadcastReceiver...). Accessed 08/02/2017 @ 14:55
 public class Main extends Activity
@@ -31,6 +37,7 @@ public class Main extends Activity
     private IntentFilter mIntentFilter;
     private File mediaStorageDir;
     private boolean streamMode;
+    private MyGestureSensor mGS;
 
     @Override
     protected void onCreate(Bundle savedInstanceState)
@@ -38,6 +45,8 @@ public class Main extends Activity
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
+
+        setUpGestureSensor();
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -80,6 +89,26 @@ public class Main extends Activity
         //GPSHandler gps = new GPSHandler(this, this);
     }
 
+    private void setUpGestureSensor()
+    {
+        if(GestureSensor.isOn() == false)
+        {
+            mGS = null;
+            Toast.makeText(this, "Gesture Sensor Is Not On", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        mGS = new MyGestureSensor(this);
+
+        if(mGS == null)
+        {
+            Toast.makeText(this, "Gesture Sensor Not Calibrated", Toast.LENGTH_LONG).show();
+            return;
+        }
+
+        mGS.register();
+    }
+
     private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh)
     {
         VideoStreamer csm = new VideoStreamer(vc);
@@ -106,6 +135,9 @@ public class Main extends Activity
     {
         super.onResume();
         registerReceiver(mReceiver, mIntentFilter);
+
+        if(mGS != null)
+            mGS.register();
     }
 
     @Override
@@ -113,6 +145,20 @@ public class Main extends Activity
     {
         super.onPause();
         unregisterReceiver(mReceiver);
+
+        if(mGS != null)
+            mGS.unregister();
+    }
+
+    @Override
+    public void onDestroy()
+    {
+        super.onDestroy();
+
+        System.out.println("On Destroy...");
+        
+        if(mGS != null)
+            mGS.unregister();
     }
 
 }
