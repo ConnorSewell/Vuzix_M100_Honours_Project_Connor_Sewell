@@ -42,11 +42,12 @@ public class GyroscopeHandler implements SensorEventListener
     private BufferedWriter bufferedWriter;
     private File gyroscopeOutputFile;
     private String TAG = "GyroscopeHandler";
+    private Main activity;
 
-
-    public GyroscopeHandler(Context context, String outputDirectory, boolean streamMode)
+    public GyroscopeHandler(Main activity, String outputDirectory, boolean streamMode)
     {
-        this.context = context;
+        this.context = activity;
+        this.activity = activity;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -71,6 +72,7 @@ public class GyroscopeHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, gyroscopeSensor, 20000);
+        activity.setSensorReady();
     }
 
     @Override

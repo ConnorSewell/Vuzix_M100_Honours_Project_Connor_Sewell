@@ -38,9 +38,12 @@ public class AccelerometerHandler implements SensorEventListener
 
     private boolean streamMode;
 
-    public AccelerometerHandler(Context context, String outputDirectory, boolean streamMode)
+    private Main activity;
+
+    public AccelerometerHandler(Main activity, String outputDirectory, boolean streamMode)
     {
-        this.context = context;
+        this.context = activity;
+        this.activity = activity;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
@@ -65,6 +68,7 @@ public class AccelerometerHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, accelerometerSensor, 20000);
+        activity.setSensorReady();
     }
 
     public void setOutputPoint(PrintWriter out)

@@ -46,7 +46,7 @@ public class GPSHandler
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras)
             {
-                Toast.makeText(activity, "Status Changed", Toast.LENGTH_LONG).show();
+                //Toast.makeText(activity, "Status Changed", Toast.LENGTH_LONG).show();
             }
 
             @Override

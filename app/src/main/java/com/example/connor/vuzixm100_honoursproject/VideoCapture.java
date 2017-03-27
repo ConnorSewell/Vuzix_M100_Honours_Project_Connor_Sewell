@@ -49,12 +49,14 @@ public class VideoCapture implements SurfaceHolder.Callback
     private boolean streamMode;
     private String TAG = "Video Audio Class: ";
     private ImageView imgView;
+    private Main activity;
 
-    public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode)
+    public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode, Main activity)
     {
         this.surfaceView = surfaceView;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
+        this.activity = activity;
 
         camera = Camera.open();
         mHolder = surfaceView.getHolder();
@@ -72,8 +74,6 @@ public class VideoCapture implements SurfaceHolder.Callback
 
     private void setCameraProperties()
     {
-
-
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewFpsRange(24000, 24000);
         parameters.setPreviewSize(320, 240);
@@ -85,6 +85,7 @@ public class VideoCapture implements SurfaceHolder.Callback
 
     private void init()
     {
+
         camera.unlock();
 
         mr.setCamera(camera);
@@ -100,9 +101,13 @@ public class VideoCapture implements SurfaceHolder.Callback
         File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
         mr.setOutputFile(mediaFile.toString());
 
+        activity.setSensorReady();
+
         new Timer().schedule(new TimerTask() {
             @Override
-            public void run() {
+            public void run()
+            {
+
                 try {
                     mr.setPreviewDisplay(mHolder.getSurface());
                 } catch (Exception e) {
@@ -114,19 +119,22 @@ public class VideoCapture implements SurfaceHolder.Callback
                     System.out.println("Error on prepare: " + String.valueOf(e));
                 }
                 try {
+
                     mr.start();
+
                 } catch (Exception e) {
                     System.out.println("Error on start: " + String.valueOf(e));
                 }
             }
         }, 500);
 
+
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
                 mr.stop();
             }
-        }, 300000);
+        }, 20000);
     }
 
     public void setOutputPoint(DataOutputStream outputPoint)
