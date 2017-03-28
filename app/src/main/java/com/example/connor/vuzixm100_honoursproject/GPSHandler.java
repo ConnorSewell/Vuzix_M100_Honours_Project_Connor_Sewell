@@ -64,7 +64,7 @@ public class GPSHandler
 
         try
         {
-            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 5000, 10, locationListener);
+            locationManager.requestLocationUpdates(LocationManager.GPS_PROVIDER, 10, 0, locationListener);
         } catch (SecurityException e)
         {
             Toast.makeText(activity, "Security exception: " + e.toString(), Toast.LENGTH_LONG).show();

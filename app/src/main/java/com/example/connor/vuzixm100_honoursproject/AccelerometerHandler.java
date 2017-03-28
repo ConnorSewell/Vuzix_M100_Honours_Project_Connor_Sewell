@@ -68,7 +68,7 @@ public class AccelerometerHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, accelerometerSensor, 20000);
-        activity.setSensorReady();
+        activity.setSensorReadyStoreMode();
     }
 
     public void setOutputPoint(PrintWriter out)

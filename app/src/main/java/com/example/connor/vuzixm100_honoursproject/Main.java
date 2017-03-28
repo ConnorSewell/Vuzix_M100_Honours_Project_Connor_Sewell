@@ -34,7 +34,7 @@ public class Main extends Activity
 {
     private String inetAddress;
     private SurfaceView surfaceView;
-    private MediaRecorder mr = new MediaRecorder();
+    //private MediaRecorder mr = new MediaRecorder();
     private WifiP2pManager mManager;
     private Channel mChannel;
     private BroadcastReceiver mReceiver;
@@ -45,11 +45,11 @@ public class Main extends Activity
     private TextView textView;
     private TextView timerText;
 
-    int sensorsReady = 0;
+    int sensorsStreamReadyReady = 0;
+    int sensorsStoreReadyReady = 0;
 
     @Override
-    protected void onCreate(Bundle savedInstanceState)
-    {
+    protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
@@ -58,8 +58,6 @@ public class Main extends Activity
         textView.setText("Status: Ready");
 
         timerText = (TextView) findViewById(R.id.timerText);
-
-        //setUpGestureSensor();
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -78,6 +76,7 @@ public class Main extends Activity
         mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + "-"
                 + currTime.month + "-" + currTime.year + "--" + currTime.hour + ":" + currTime.minute + ":" + currTime.second);
 
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/MattLang");
         if (!mediaStorageDir.exists())
         {
             if (!mediaStorageDir.mkdirs())
@@ -89,13 +88,18 @@ public class Main extends Activity
         String outputDirectory = mediaStorageDir.getPath();
         streamMode = false;
 
+
         VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode, this);
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
         GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
 
+        VolumeLevelHandler vlh = new VolumeLevelHandler(this, outputDirectory, streamMode);
+        Thread volumeLevelThread = new Thread(vlh, "Thread: Gyroscope");
+        volumeLevelThread.start();
+
         if(streamMode)
         {
-          //  startStreamThreads(vd, ah, gh);
+           startStreamThreads(vd, ah, gh);
         }
         else
         {
@@ -103,7 +107,19 @@ public class Main extends Activity
             gh.registerSensorListener();
         }
 
-       // GPSHandler gps = new GPSHandler(this, this);
+       GPSHandler gps = new GPSHandler(this, this);
+    }
+
+    MediaRecorder mr = new MediaRecorder();
+
+    public MediaRecorder getMediaRecorder()
+    {
+        return mr;
+    }
+
+    public void access()
+    {
+        System.out.println(mr.getMaxAmplitude());
     }
 
     private void setUpGestureSensor()
@@ -146,10 +162,19 @@ public class Main extends Activity
         audioTester.start();
     }
 
-    public void setSensorReady()
+    public void setSensorReadyStreamMode()
     {
-        sensorsReady++;
-        if(sensorsReady == 3)
+        sensorsStreamReadyReady++;
+        if(sensorsStreamReadyReady == 4)
+        {
+            setTimer();
+        }
+    }
+
+    public void setSensorReadyStoreMode()
+    {
+        sensorsStoreReadyReady++;
+        if(sensorsStoreReadyReady == 4)
         {
             setTimer();
         }

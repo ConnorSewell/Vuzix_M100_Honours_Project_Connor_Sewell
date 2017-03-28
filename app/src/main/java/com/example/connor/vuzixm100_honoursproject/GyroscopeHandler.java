@@ -72,7 +72,7 @@ public class GyroscopeHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, gyroscopeSensor, 20000);
-        activity.setSensorReady();
+        activity.setSensorReadyStoreMode();
     }
 
     @Override

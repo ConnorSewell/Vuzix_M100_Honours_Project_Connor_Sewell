@@ -57,6 +57,7 @@ public class VideoCapture implements SurfaceHolder.Callback
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
         this.activity = activity;
+        this.mr = mr;
 
         camera = Camera.open();
         mHolder = surfaceView.getHolder();
@@ -88,53 +89,54 @@ public class VideoCapture implements SurfaceHolder.Callback
 
         camera.unlock();
 
-        mr.setCamera(camera);
-        mr.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+        activity.getMediaRecorder().setAudioSamplingRate(8000);
+        activity.getMediaRecorder().setCamera(camera);
+        activity.getMediaRecorder().setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+        activity.getMediaRecorder().setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
         CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
         cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
         cp.videoFrameRate = 24;
 
-        mr.setProfile(cp);
+        activity.getMediaRecorder().setProfile(cp);
 
         File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
-        mr.setOutputFile(mediaFile.toString());
+        activity.getMediaRecorder().setOutputFile(mediaFile.toString());
 
-        activity.setSensorReady();
+        activity.setSensorReadyStoreMode();
 
         new Timer().schedule(new TimerTask() {
             @Override
-            public void run()
-            {
+            public void run() {
 
                 try {
-                    mr.setPreviewDisplay(mHolder.getSurface());
+                    activity.getMediaRecorder().setPreviewDisplay(mHolder.getSurface());
                 } catch (Exception e) {
                     System.out.println("Error on set preview display:" + String.valueOf(e));
                 }
                 try {
-                    mr.prepare();
+                    activity.getMediaRecorder().prepare();
                 } catch (Exception e) {
                     System.out.println("Error on prepare: " + String.valueOf(e));
                 }
                 try {
 
-                    mr.start();
+                    activity.getMediaRecorder().start();
+
 
                 } catch (Exception e) {
                     System.out.println("Error on start: " + String.valueOf(e));
                 }
             }
         }, 500);
-
-
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
-                mr.stop();
+                activity.getMediaRecorder().stop();
             }
-        }, 20000);
+        }, 30000);
+
+
     }
 
     public void setOutputPoint(DataOutputStream outputPoint)
