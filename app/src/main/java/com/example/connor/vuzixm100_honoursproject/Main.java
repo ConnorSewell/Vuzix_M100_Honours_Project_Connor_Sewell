@@ -4,8 +4,6 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
-import android.media.AudioFormat;
-import android.media.AudioRecord;
 import android.media.MediaRecorder;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
@@ -13,15 +11,16 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.format.Time;
 import android.util.Log;
-import android.view.Menu;
-import android.view.MenuItem;
 import android.view.SurfaceView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.vuzix.hardware.GestureSensor;
 
+import java.io.BufferedWriter;
 import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -48,11 +47,19 @@ public class Main extends Activity
     int sensorsStreamReadyReady = 0;
     int sensorsStoreReadyReady = 0;
 
+    private FileWriter outputFileWriter;
+    private File audioLevelTextFile;
+    private BufferedWriter bufferedWriter;
+
+    private boolean mediaStarted;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
+
+
 
         textView = (TextView) findViewById(R.id.statusText);
         textView.setText("Status: Ready");
@@ -76,7 +83,7 @@ public class Main extends Activity
         mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + "-"
                 + currTime.month + "-" + currTime.year + "--" + currTime.hour + ":" + currTime.minute + ":" + currTime.second);
 
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/MattLang");
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/Sample");
         if (!mediaStorageDir.exists())
         {
             if (!mediaStorageDir.mkdirs())
@@ -86,14 +93,24 @@ public class Main extends Activity
         }
 
         String outputDirectory = mediaStorageDir.getPath();
-        streamMode = false;
+        streamMode = true;
 
+        audioLevelTextFile = new File(outputDirectory + File.separator + "AudioLevelsData.txt");
+        try
+        {
+            outputFileWriter = new FileWriter(audioLevelTextFile);
+            bufferedWriter = new BufferedWriter(outputFileWriter);
+            System.out.println(audioLevelTextFile.length());
+
+        } catch (IOException e) {
+
+        }
 
         VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode, this);
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
         GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
 
-        VolumeLevelHandler vlh = new VolumeLevelHandler(this, outputDirectory, streamMode);
+        AudioLevelsHandler vlh = new AudioLevelsHandler(this, outputDirectory, streamMode);
         Thread volumeLevelThread = new Thread(vlh, "Thread: Gyroscope");
         volumeLevelThread.start();
 
@@ -119,7 +136,7 @@ public class Main extends Activity
 
     public void access()
     {
-        System.out.println(mr.getMaxAmplitude());
+
     }
 
     private void setUpGestureSensor()

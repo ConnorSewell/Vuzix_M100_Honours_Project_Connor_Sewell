@@ -129,6 +129,7 @@ public class VideoCapture implements SurfaceHolder.Callback
                 }
             }
         }, 500);
+
         new Timer().schedule(new TimerTask() {
             @Override
             public void run() {
