@@ -76,7 +76,7 @@ public class GyroscopeHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, gyroscopeSensor, 20000);
-        activity.setSensorReadyStoreMode();
+        activity.setSensorReady();
     }
 
     @Override
@@ -90,6 +90,7 @@ public class GyroscopeHandler implements SensorEventListener
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
+        //Set here?
         if (!busy)
         {
             this.sensorEvent = event;
@@ -97,7 +98,8 @@ public class GyroscopeHandler implements SensorEventListener
             new Thread(new Runnable()
             {
                 @Override
-                public void run() {
+                public void run()
+                {
                     if (timestamp != 0) {
                         final float dT = (sensorEvent.timestamp - timestamp) * NS2S;
 
@@ -107,7 +109,8 @@ public class GyroscopeHandler implements SensorEventListener
 
                         float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
-                        if (omegaMagnitude > EPSILON) {
+                        if (omegaMagnitude > EPSILON)
+                        {
                             axisX /= omegaMagnitude;
                             axisY /= omegaMagnitude;
                             axisZ /= omegaMagnitude;
@@ -158,6 +161,7 @@ public class GyroscopeHandler implements SensorEventListener
                     timestamp = sensorEvent.timestamp;
                     float[] deltaRotationMatrix = new float[9];
                     SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
+                    busy = false;
                 }
             }).start();
             //writeToFile();

@@ -4,6 +4,7 @@ import android.content.Context;
 import android.util.Log;
 
 import java.io.DataOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.net.ServerSocket;
@@ -27,7 +28,9 @@ public class VideoStreamer implements Runnable
     @Override
     public void run()
     {
-        ServerSocket sv;
+        //vd.init();
+
+        ServerSocket sv = null;
         Socket client;
         OutputStream os;
         DataOutputStream dos;
@@ -35,15 +38,23 @@ public class VideoStreamer implements Runnable
         try
         {
             sv = new ServerSocket(8888);
-            client = sv.accept();
-            os = client.getOutputStream();
-            dos = new DataOutputStream(os);
-            vd.addOutputPoint(dos);
         }
-        catch(Exception e)
+        catch(IOException e)
         {
-            Log.e("Error: ", e.toString());
+            Log.e(TAG, "Trouble creating server socket");
             run();
+        }
+
+        while(true) {
+            try {
+                client = sv.accept();
+                os = client.getOutputStream();
+                dos = new DataOutputStream(os);
+                vd.addOutputPoint(dos);
+            } catch (Exception e) {
+                Log.e("Error: ", e.toString());
+                run();
+            }
         }
     }
 }

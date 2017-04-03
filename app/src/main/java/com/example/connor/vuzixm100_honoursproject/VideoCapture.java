@@ -41,7 +41,7 @@ import java.util.TimerTask;
  * http://stackoverflow.com/questions/1817742/how-can-i-capture-a-video-recording-on-android
  * ^ Also used to aid with video capturing due to docs code being a bit "poor". Accessed: 04/02/2017 @ 20:27
  */
-public class VideoCapture implements SurfaceHolder.Callback, Runnable
+public class VideoCapture implements SurfaceHolder.Callback
 {
     private Camera camera;
     private SurfaceView surfaceView;
@@ -55,34 +55,22 @@ public class VideoCapture implements SurfaceHolder.Callback, Runnable
     private Main activity;
     private ArrayList<DataOutputStream> outputPoints = new ArrayList<DataOutputStream>();
 
-    @Override
-    public void run()
-    {
-        mr = new MediaRecorder();
-        camera = Camera.open();
-        mHolder = surfaceView.getHolder();
-        mHolder.addCallback(this);
-
-        System.out.println("CMON?");
-
-        if(!streamMode)
-        {
-            System.out.println("lol");
-            init();
-        }
-        else
-        {
-            changePreviewStreamingState();
-            setCameraProperties();
-        }
-    }
-
     public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode, Main activity)
     {
         this.surfaceView = surfaceView;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
         this.activity = activity;
+
+        camera = Camera.open();
+        mHolder = surfaceView.getHolder();
+        mHolder.addCallback(this);
+
+        if(streamMode)
+        {
+            changePreviewStreamingState();
+            setCameraProperties();
+        }
 
     }
 
@@ -97,9 +85,19 @@ public class VideoCapture implements SurfaceHolder.Callback, Runnable
         mHolder.addCallback(this);
     }
 
-    private void init()
+    public void init()
     {
-        camera.unlock();
+   //     mHolder = surfaceView.getHolder();
+   //     mHolder.addCallback(this);
+        new Thread(new Runnable()
+        {
+            public void run()
+            {
+
+               mr = new MediaRecorder();
+
+
+         camera.unlock();
 
         //activity.getMediaRecorder().setAudioSamplingRate(8000);
         mr.setCamera(camera);
@@ -124,7 +122,7 @@ public class VideoCapture implements SurfaceHolder.Callback, Runnable
         File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
         mr.setOutputFile(mediaFile.toString());
 
-        activity.setSensorReadyStoreMode();
+        //activity.setSensorReadyStoreMode();
 
         new Timer().schedule(new TimerTask() {
             @Override
@@ -153,6 +151,7 @@ public class VideoCapture implements SurfaceHolder.Callback, Runnable
             @Override
             public void run() {
                 mr.start();
+                activity.setSensorReady();
             }
         }, 2000);
 
@@ -162,8 +161,11 @@ public class VideoCapture implements SurfaceHolder.Callback, Runnable
                 mr.stop();
             }
         }, 120000);
+            }
+        }).start();
     }
 
+    boolean outputPointsNull = true;
     public void addOutputPoint(DataOutputStream outputPoint)
     {
         outputPoints.add(outputPoint);

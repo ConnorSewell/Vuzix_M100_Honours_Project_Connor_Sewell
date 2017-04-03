@@ -39,7 +39,7 @@ public class Main extends Activity
     private BroadcastReceiver mReceiver;
     private IntentFilter mIntentFilter;
     private File mediaStorageDir;
-    private boolean streamMode;
+    public boolean streamMode = false;
     private MyGestureSensor mGS;
     private TextView textView;
     private TextView timerText;
@@ -76,60 +76,65 @@ public class Main extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
         //Ref here...
+        setDirectory();
+        startRecording();
+
+        GPSHandler gps = new GPSHandler(this, this);
+
+    }
+
+    String outputDirectory;
+    public void setDirectory() {
         Time currTime = new Time(Time.getCurrentTimezone());
         currTime.setToNow();
 
         mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + 1 + "#"
                 + currTime.month + "#" + currTime.year + "--" + currTime.hour + "-" + currTime.minute + "-" + currTime.second);
 
-        if (!mediaStorageDir.exists())
-        {
-            if (!mediaStorageDir.mkdirs())
-            {
+        if (!mediaStorageDir.exists()) {
+            if (!mediaStorageDir.mkdirs()) {
                 System.out.println("Failed to create directory...");
             }
         }
 
-        String outputDirectory = mediaStorageDir.getPath();
-        streamMode = true;
-
-        videoStartTextFile = new File(outputDirectory + File.separator + "VideoStart.txt");
-
-        try
-        {
-            outputFileWriter = new FileWriter(videoStartTextFile);
-            bufferedWriter = new BufferedWriter(outputFileWriter);
-
-        } catch (IOException e) {
-
-        }
-
-        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, streamMode, this);
-        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
-        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
-        AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, streamMode);
-
-
-        if(streamMode)
-        {
-            ah.registerSensorListener();
-            gh.registerSensorListener();
-            startStreamThreads(vc, ah, gh, alh);
-        }
-        else
-        {
-            ah.registerSensorListener();
-            gh.registerSensorListener();
-            Thread videoSocketListener = new Thread(vc, "Thread: Video");
-            videoSocketListener.start();
-        }
-
-       GPSHandler gps = new GPSHandler(this, this);
+        outputDirectory = mediaStorageDir.getPath();
     }
 
-    private void streamModeSetup()
+    public void startStream()
     {
+        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, true, this);
+        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, true);
+        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, true);
+        AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, true);
 
+        ah.registerSensorListener();
+        gh.registerSensorListener();
+        setSensorReady();
+
+        startStreamThreads(vc, ah, gh, alh);
+        //Thread videoSocketListener = new Thread(vc, "Thread: Video");
+        //videoSocketListener.start();
+    }
+
+    private void setVideoThread(VideoCapture vc)
+    {
+        //Thread videoThread = new Thread(vc, "Thread: Video");
+        //videoThread.start();
+    }
+
+    public void startRecording()
+    {
+        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, false, this);
+        vc.init();
+        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, false);
+        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, false);
+        //AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, false);
+
+        setVideoThread(vc);
+
+        ah.registerSensorListener();
+        gh.registerSensorListener();
+        //startStreamThreads(vc, ah, gh, alh);
     }
 
     MediaRecorder mr = new MediaRecorder();
@@ -147,7 +152,7 @@ public class Main extends Activity
             return;
         }
 
-        mGS = new MyGestureSensor(this);
+        mGS = new MyGestureSensor(this, this);
 
         if(mGS == null)
         {
@@ -182,19 +187,15 @@ public class Main extends Activity
         audioTester.start();
     }
 
-    public void setSensorReadyStreamMode()
+    int sensorsReady = 0;
+    public void setSensorReady()
     {
-        sensorsStreamReadyReady++;
-        if(sensorsStreamReadyReady == 4)
+        sensorsReady++;
+        if(sensorsReady == 4 && streamMode)
         {
             setTimer();
         }
-    }
-
-    public void setSensorReadyStoreMode()
-    {
-        sensorsStoreReadyReady++;
-        if(sensorsStoreReadyReady == 4)
+        else if(sensorsReady == 3 && !streamMode)
         {
             setTimer();
         }

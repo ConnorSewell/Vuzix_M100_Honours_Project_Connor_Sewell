@@ -29,7 +29,7 @@ public class GyroscopeStreamer implements Runnable
     @Override
     public void run()
     {
-        ServerSocket sv;
+        ServerSocket sv = null;
         Socket client;
         InputStream inputStream;
         PrintWriter out;
@@ -37,14 +37,22 @@ public class GyroscopeStreamer implements Runnable
         try
         {
             sv = new ServerSocket(4444);
-            client = sv.accept();
-            out = new PrintWriter(client.getOutputStream(), true);
-            gh.addOutputPoint(out);
         }
         catch(IOException e)
         {
-            Log.e(TAG, e.toString());
+            Log.e(TAG, "Trouble creating server socket");
             run();
+        }
+
+        while(true) {
+            try {
+                client = sv.accept();
+                out = new PrintWriter(client.getOutputStream(), true);
+                gh.addOutputPoint(out);
+            } catch (IOException e) {
+                Log.e(TAG, e.toString());
+                run();
+            }
         }
     }
 

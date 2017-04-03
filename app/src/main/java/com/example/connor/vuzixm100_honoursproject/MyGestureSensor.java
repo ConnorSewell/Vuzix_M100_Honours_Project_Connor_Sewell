@@ -16,20 +16,36 @@ import com.vuzix.hardware.GestureSensor;
 public class MyGestureSensor extends GestureSensor
 {
     Context context;
-    public MyGestureSensor(Context context)
+    Main activity;
+    boolean streamMode = true;
+    boolean started = false;
+    public MyGestureSensor(Context context, Main activity)
     {
         super(context);
         this.context = context;
+        this.activity = activity;
     }
 
     protected void onBackSwipe(int speed)
     {
-        Toast.makeText(context, "Recognised: BackSwipe", Toast.LENGTH_LONG).show();
+        started = !started;
+        activity.setDirectory();
+        if(streamMode)
+        {
+           // activity.startStream();
+        }
+        else
+        {
+           // activity.startRecording();
+        }
+        Toast.makeText(context, "Started", Toast.LENGTH_LONG).show();
     }
 
     protected void onForwardSwipe(int speed)
     {
-        Toast.makeText(context, "Recognised: ForwardSwipe", Toast.LENGTH_LONG).show();
+        streamMode = !streamMode;
+        activity.streamMode = !activity.streamMode;
+        Toast.makeText(context, "Mode Changed", Toast.LENGTH_LONG).show();
     }
 
     protected void onNear() {

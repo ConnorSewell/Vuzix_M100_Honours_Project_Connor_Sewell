@@ -24,7 +24,7 @@ import java.util.TimerTask;
 /**
  * Created by Connor on 27/03/2017.
  */
-public class AudioLevelsHandler implements Runnable
+public class AudioLevelsHandler
 {
 
     private String outputDirectory;
@@ -38,7 +38,7 @@ public class AudioLevelsHandler implements Runnable
 
     private AudioRecord ar = null;
     private int minSize;
-    private Main activity;
+    public Main mainActivity;
     private Context context;
     private MediaRecorder mediaRecorder;
 
@@ -46,91 +46,76 @@ public class AudioLevelsHandler implements Runnable
 
     public AudioLevelsHandler(Main activity, String outputDirectory, boolean streamMode)
     {
-        this.activity = activity;
+        this.mainActivity = activity;
         this.context = activity;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
-    }
 
-    @Override
-    public void run()
-    {
-        //int counter = 0;
-        //int currentVal = 0;
-        //double finalVal = 0;
-        //long accumulatedTime = 0;
-
-        int valsAdded = 0;
-        int count = 0;
-        int accumulatorCount = 0;
-        long nanos = 0;
-        int accumulator = 0;
-        String test = null;
-
-        if(streamMode)
+        new Thread(new Runnable()
         {
-            mediaRecorder = new MediaRecorder();
-            mediaRecorder.setAudioSamplingRate(8000);
-            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-            mediaRecorder.setOutputFile("/dev/null");
-            try
+            public void run()
             {
-                mediaRecorder.prepare();
-                mediaRecorder.start();
-            }
-            catch(Exception e)
-            {
-                Log.e(TAG, e.toString());
-            }
+                int valsAdded = 0;
+                int count = 0;
+                long nanos = 0;
+                int accumulator = 0;
 
-        }
-
-        while (true)
-        {
-            try {
-                Thread.sleep(20);
-
-                int amplitude = mediaRecorder.getMaxAmplitude();
-                if (amplitude > 0) {
-                    accumulator = accumulator + amplitude;
-                    nanos = nanos + System.nanoTime();
-                    valsAdded++;
-                }
-                count++;
-                if (count == 10)
+                mediaRecorder = new MediaRecorder();
+                mediaRecorder.setAudioSamplingRate(8000);
+                mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+                mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
+                mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
+                mediaRecorder.setOutputFile("/dev/null");
+                try
                 {
-                    for(int i = 0; i < outputPoints.size(); i++)
-                    {
-                        outputPoints.get(i).println(String.valueOf(accumulator / valsAdded) + "," + String.valueOf(nanos / valsAdded));
-                    }
-
-                    count = 0;
-                    nanos = 0;
-                    accumulator = 0;
-                    valsAdded = 0;
+                    mediaRecorder.prepare();
+                    mediaRecorder.start();
+                    mainActivity.setSensorReady();
+                }
+                catch(Exception e)
+                {
+                    Log.e(TAG, e.toString());
                 }
 
-                //counter++;
-                //accumulatedTime = accumulatedTime + System.nanoTime();
-                //if (counter == 20) {
-                //    counter = 0;
-                //    accumulatedTime = 0;
-                // }
+                while (true)
+                {
+                    try
+                    {
+                        Thread.sleep(20);
+
+                        int amplitude = mediaRecorder.getMaxAmplitude();
+                        if (amplitude > 0) {
+                            accumulator = accumulator + amplitude;
+                            nanos = nanos + System.nanoTime();
+                            valsAdded++;
+                        }
+                        count++;
+                        if (count == 10)
+                        {
+                            for(int i = 0; i < outputPoints.size(); i++)
+                            {
+                                outputPoints.get(i).println(String.valueOf(accumulator / valsAdded) + "," + String.valueOf(nanos / valsAdded));
+                            }
+
+                            count = 0;
+                            nanos = 0;
+                            accumulator = 0;
+                            valsAdded = 0;
+                        }
+
+                    }
+                    catch (Exception e)
+                    {
+                        Log.e(TAG, e.toString());
+                    }
+                }
 
             }
-            catch (Exception e)
-            {
-                Log.e(TAG, e.toString());
-            }
-        }
+        }).start();
     }
-
     public void addOutputPoint(PrintWriter out)
     {
         outputPoints.add(out);
     }
-
 }
 

@@ -70,7 +70,7 @@ public class AccelerometerHandler implements SensorEventListener
     public void registerSensorListener()
     {
         mSensorManager.registerListener(this, accelerometerSensor, 20000);
-        activity.setSensorReadyStoreMode();
+        activity.setSensorReady();
     }
 
     public void setOutputPoint(PrintWriter out)
@@ -102,7 +102,8 @@ public class AccelerometerHandler implements SensorEventListener
             this.sensorEvent = event;
             busy = true;
             new Thread(new Runnable() {
-                public void run() {
+                public void run()
+                {
                     gravity[0] = alpha * gravity[0] + (1 - alpha) * sensorEvent.values[0];
                     gravity[1] = alpha * gravity[1] + (1 - alpha) * sensorEvent.values[1];
                     gravity[2] = alpha * gravity[2] + (1 - alpha) * sensorEvent.values[2];
@@ -128,6 +129,7 @@ public class AccelerometerHandler implements SensorEventListener
 
                         if (streamMode) {
                             for (int i = 0; i < outputPoints.size(); i++) {
+                                System.out.println("Here...");
                                 outputPoints.get(i).println(outputString);
                             }
                             // out.println(outputString);
@@ -149,7 +151,10 @@ public class AccelerometerHandler implements SensorEventListener
                             Log.e(TAG, "Write failed...");
                         }
                     }
+                    busy = false;
                 }
+
+
             }).start();
         }
     }
