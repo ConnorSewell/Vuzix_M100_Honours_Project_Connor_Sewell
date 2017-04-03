@@ -48,18 +48,17 @@ public class Main extends Activity
     int sensorsStoreReadyReady = 0;
 
     private FileWriter outputFileWriter;
-    private File audioLevelTextFile;
+    private File videoStartTextFile;
     private BufferedWriter bufferedWriter;
 
     private boolean mediaStarted;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-
-
 
         textView = (TextView) findViewById(R.id.statusText);
         textView.setText("Status: Ready");
@@ -80,10 +79,9 @@ public class Main extends Activity
         Time currTime = new Time(Time.getCurrentTimezone());
         currTime.setToNow();
 
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + "-"
-                + currTime.month + "-" + currTime.year + "--" + currTime.hour + ":" + currTime.minute + ":" + currTime.second);
+        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + 1 + "#"
+                + currTime.month + "#" + currTime.year + "--" + currTime.hour + "-" + currTime.minute + "-" + currTime.second);
 
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/Sample");
         if (!mediaStorageDir.exists())
         {
             if (!mediaStorageDir.mkdirs())
@@ -95,48 +93,49 @@ public class Main extends Activity
         String outputDirectory = mediaStorageDir.getPath();
         streamMode = true;
 
-        audioLevelTextFile = new File(outputDirectory + File.separator + "AudioLevelsData.txt");
+        videoStartTextFile = new File(outputDirectory + File.separator + "VideoStart.txt");
+
         try
         {
-            outputFileWriter = new FileWriter(audioLevelTextFile);
+            outputFileWriter = new FileWriter(videoStartTextFile);
             bufferedWriter = new BufferedWriter(outputFileWriter);
-            System.out.println(audioLevelTextFile.length());
 
         } catch (IOException e) {
 
         }
 
-        VideoCapture vd = new VideoCapture(surfaceView, true, outputDirectory, streamMode, this);
+        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, streamMode, this);
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, streamMode);
         GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, streamMode);
+        AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, streamMode);
 
-        AudioLevelsHandler vlh = new AudioLevelsHandler(this, outputDirectory, streamMode);
-        Thread volumeLevelThread = new Thread(vlh, "Thread: Gyroscope");
-        volumeLevelThread.start();
 
         if(streamMode)
         {
-           startStreamThreads(vd, ah, gh);
+            ah.registerSensorListener();
+            gh.registerSensorListener();
+            startStreamThreads(vc, ah, gh, alh);
         }
         else
         {
             ah.registerSensorListener();
             gh.registerSensorListener();
+            Thread videoSocketListener = new Thread(vc, "Thread: Video");
+            videoSocketListener.start();
         }
 
        GPSHandler gps = new GPSHandler(this, this);
     }
 
-    MediaRecorder mr = new MediaRecorder();
+    private void streamModeSetup()
+    {
 
+    }
+
+    MediaRecorder mr = new MediaRecorder();
     public MediaRecorder getMediaRecorder()
     {
         return mr;
-    }
-
-    public void access()
-    {
-
     }
 
     private void setUpGestureSensor()
@@ -159,7 +158,7 @@ public class Main extends Activity
         mGS.register();
     }
 
-    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh)
+    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh, AudioLevelsHandler alh)
     {
         VideoStreamer csm = new VideoStreamer(vc);
         Thread videoSocketListener = new Thread(csm, "Thread: Video");
@@ -172,6 +171,10 @@ public class Main extends Activity
         GyroscopeStreamer gs = new GyroscopeStreamer(this, gh);
         Thread gyroscopeSocketListener = new Thread(gs, "Thread: Gyroscope");
         gyroscopeSocketListener.start();
+
+        AudioLevelsStreamer als = new AudioLevelsStreamer(alh);
+        Thread audioLevelsListener = new Thread(als, "Thread: Audio Levels");
+        audioLevelsListener.start();
 
         AudioHandler audioH = new AudioHandler();
         AudioStreamer audioStreamer = new AudioStreamer(this, audioH);

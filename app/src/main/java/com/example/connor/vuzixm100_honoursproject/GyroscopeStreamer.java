@@ -39,8 +39,7 @@ public class GyroscopeStreamer implements Runnable
             sv = new ServerSocket(4444);
             client = sv.accept();
             out = new PrintWriter(client.getOutputStream(), true);
-            gh.setOutputPoint(out);
-            gh.registerSensorListener();
+            gh.addOutputPoint(out);
         }
         catch(IOException e)
         {

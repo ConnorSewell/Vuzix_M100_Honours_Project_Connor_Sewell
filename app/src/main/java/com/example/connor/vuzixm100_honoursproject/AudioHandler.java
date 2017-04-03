@@ -5,6 +5,8 @@ import android.media.AudioFormat;
 import android.media.AudioManager;
 import android.media.AudioRecord;
 import android.media.AudioTrack;
+import android.media.MediaRecorder;
+import android.provider.MediaStore;
 import android.util.Log;
 
 import java.io.DataOutputStream;
@@ -21,7 +23,7 @@ import java.net.Socket;
  * ^ Used to aid with bundling audio stream into byte array. Also used in phone application (also reference there)
  * ^ Accessed: 14/03/2017 @ 19:30
  */
-public class AudioHandler
+public class AudioHandler implements Runnable
 {
     Context context;
     AudioRecord ar;
@@ -31,7 +33,39 @@ public class AudioHandler
     public AudioHandler()
     {
         this.context = context;
-        ar = new AudioRecord(5, 44100, 2, AudioFormat.ENCODING_PCM_16BIT, 7104);
+    }
+
+    @Override
+    public void run()
+    {
+        System.out.println("Lets starrt");
+        ar = new AudioRecord(MediaRecorder.AudioSource.MIC, 44100, 2, AudioFormat.ENCODING_PCM_16BIT, 7104);
+        //new AudioRecord()
+
+        ar.startRecording();
+        while(true)
+        {
+            byte[] audioBuffer = new byte[7104];
+            short[] buffer = new short[7104];
+            ar.read(buffer, 0, 7104);
+            int max = 0;
+            double accumulator = 0;
+            int count = 0;
+            long timePoint = 0;
+            for (short byteInBuffer : buffer)
+            {
+                if (Math.abs(byteInBuffer) > max)
+                {
+                    max = Math.abs(byteInBuffer);
+                    timePoint = System.nanoTime();
+                }
+                // accumulator += Math.abs(byteInBuffer);
+                // count++;
+            }
+
+            System.out.println(max);
+        }
+
     }
 
     public void setOutputStream(DataOutputStream outputStream)

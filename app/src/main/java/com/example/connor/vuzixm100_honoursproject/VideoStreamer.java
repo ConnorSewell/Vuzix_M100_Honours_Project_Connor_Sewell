@@ -38,8 +38,7 @@ public class VideoStreamer implements Runnable
             client = sv.accept();
             os = client.getOutputStream();
             dos = new DataOutputStream(os);
-            vd.setOutputPoint(dos);
-            vd.changePreviewStreamingState();
+            vd.addOutputPoint(dos);
         }
         catch(Exception e)
         {

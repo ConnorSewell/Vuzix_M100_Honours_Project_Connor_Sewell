@@ -17,6 +17,7 @@ import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
+import java.util.ArrayList;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -41,12 +42,30 @@ public class AudioLevelsHandler implements Runnable
     private Context context;
     private MediaRecorder mediaRecorder;
 
+    private ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
+
     public AudioLevelsHandler(Main activity, String outputDirectory, boolean streamMode)
     {
         this.activity = activity;
         this.context = activity;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
+    }
+
+    @Override
+    public void run()
+    {
+        //int counter = 0;
+        //int currentVal = 0;
+        //double finalVal = 0;
+        //long accumulatedTime = 0;
+
+        int valsAdded = 0;
+        int count = 0;
+        int accumulatorCount = 0;
+        long nanos = 0;
+        int accumulator = 0;
+        String test = null;
 
         if(streamMode)
         {
@@ -61,84 +80,56 @@ public class AudioLevelsHandler implements Runnable
                 mediaRecorder.prepare();
                 mediaRecorder.start();
             }
-            catch(Exception e){
+            catch(Exception e)
+            {
+                Log.e(TAG, e.toString());
+            }
 
+        }
+
+        while (true)
+        {
+            try {
+                Thread.sleep(20);
+
+                int amplitude = mediaRecorder.getMaxAmplitude();
+                if (amplitude > 0) {
+                    accumulator = accumulator + amplitude;
+                    nanos = nanos + System.nanoTime();
+                    valsAdded++;
+                }
+                count++;
+                if (count == 10)
+                {
+                    for(int i = 0; i < outputPoints.size(); i++)
+                    {
+                        outputPoints.get(i).println(String.valueOf(accumulator / valsAdded) + "," + String.valueOf(nanos / valsAdded));
+                    }
+
+                    count = 0;
+                    nanos = 0;
+                    accumulator = 0;
+                    valsAdded = 0;
+                }
+
+                //counter++;
+                //accumulatedTime = accumulatedTime + System.nanoTime();
+                //if (counter == 20) {
+                //    counter = 0;
+                //    accumulatedTime = 0;
+                // }
+
+            }
+            catch (Exception e)
+            {
+                Log.e(TAG, e.toString());
             }
         }
     }
 
-    @Override
-    public void run()
+    public void addOutputPoint(PrintWriter out)
     {
-        ServerSocket sv;
-        Socket client;
-        InputStream inputStream;
-        PrintWriter out = null;
-
-        try {
-            sv = new ServerSocket(1111);
-            client = sv.accept();
-            out = new PrintWriter(client.getOutputStream(), true);
-        }
-        catch(IOException e)
-        {
-            Log.e(TAG, e.toString());
-            run();
-        }
-
-        int counter = 0;
-        int currentVal = 0;
-        double finalVal = 0;
-        long accumulatedTime = 0;
-
-        String test = null;
-        int count = 0;
-        int valsAdded = 0;
-        int accumulatorCount = 0;
-        long nanos = 0;
-        int accumulator = 0;
-
-        while(true)
-        {
-            try
-            {
-                Thread.sleep(20);
-                if(streamMode)
-                {
-                    int amplitude = mediaRecorder.getMaxAmplitude();
-                    if(amplitude > 0) {
-                        accumulator = accumulator + amplitude;
-                        nanos = nanos + System.nanoTime();
-                        valsAdded++;
-                    }
-                    count++;
-                    if(count == 5)
-                    {
-                        out.println(String.valueOf(accumulator/valsAdded) + "," + String.valueOf(nanos/valsAdded));
-                        count = 0;
-                        nanos = 0;
-                        accumulator = 0;
-                        valsAdded = 0;
-                    }
-                }
-                else
-                {
-                    //test = String.valueOf(activity.getMediaRecorder().getMaxAmplitude());
-                }
-                counter ++;
-                accumulatedTime = accumulatedTime + System.nanoTime();
-                if(counter == 20)
-                {
-                    counter = 0;
-                    accumulatedTime = 0;
-                }
-
-            }
-            catch(Exception e)
-            {
-
-            }
-        }
+        outputPoints.add(out);
     }
 
 }

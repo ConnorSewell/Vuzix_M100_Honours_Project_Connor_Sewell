@@ -14,6 +14,8 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Handles accelerometer data gathering/streaming
@@ -35,10 +37,10 @@ public class AccelerometerHandler implements SensorEventListener
     private BufferedWriter bufferedWriter;
 
     private String TAG = "AccelerometerHandler: ";
-
     private boolean streamMode;
-
     private Main activity;
+
+    public ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
 
     public AccelerometerHandler(Main activity, String outputDirectory, boolean streamMode)
     {
@@ -73,7 +75,7 @@ public class AccelerometerHandler implements SensorEventListener
 
     public void setOutputPoint(PrintWriter out)
     {
-        this.out = out;
+        this.outputPoints.add(out);
     }
 
     @Override
@@ -89,63 +91,67 @@ public class AccelerometerHandler implements SensorEventListener
     private float averagedZ = 0.f;
     private long averagedTime = 0;
     private final float alpha = 0.8f;
+    private SensorEvent sensorEvent;
+    boolean busy = false;
 
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
-        gravity[0] = alpha * gravity[0] + (1 - alpha) * event.values[0];
-        gravity[1] = alpha * gravity[1] + (1 - alpha) * event.values[1];
-        gravity[2] = alpha * gravity[2] + (1 - alpha) * event.values[2];
-
-        linearAcceleration[0] = event.values[0] - gravity[0];
-        linearAcceleration[1] = event.values[1] - gravity[1];
-        linearAcceleration[2] = event.values[2] - gravity[2];
-        time = event.timestamp;
-
-        averagedX = averagedX + linearAcceleration[0];
-        averagedY = averagedY + linearAcceleration[1];
-        averagedZ = averagedZ + linearAcceleration[2];
-        averagedTime = averagedTime + event.timestamp;
-        count++;
-
-        if(count == 15)
+        if (!busy)
         {
-            averagedX = averagedX/15.f;
-            averagedY = averagedY/15.f;
-            averagedZ = averagedZ/15.f;
-            averagedTime = averagedTime/15;
-            outputString = averagedX + "," + averagedY + "," + averagedZ + "," + averagedTime;
-            //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+            this.sensorEvent = event;
+            busy = true;
+            new Thread(new Runnable() {
+                public void run() {
+                    gravity[0] = alpha * gravity[0] + (1 - alpha) * sensorEvent.values[0];
+                    gravity[1] = alpha * gravity[1] + (1 - alpha) * sensorEvent.values[1];
+                    gravity[2] = alpha * gravity[2] + (1 - alpha) * sensorEvent.values[2];
 
-            if(streamMode)
-            out.println(outputString);
+                    linearAcceleration[0] = sensorEvent.values[0] - gravity[0];
+                    linearAcceleration[1] = sensorEvent.values[1] - gravity[1];
+                    linearAcceleration[2] = sensorEvent.values[2] - gravity[2];
+                    time = sensorEvent.timestamp;
 
-            count = 0;
-            averagedX = 0;
-            averagedY = 0;
-            averagedZ = 0;
-            averagedTime = 0;
+                    averagedX = averagedX + linearAcceleration[0];
+                    averagedY = averagedY + linearAcceleration[1];
+                    averagedZ = averagedZ + linearAcceleration[2];
+                    averagedTime = averagedTime + sensorEvent.timestamp;
+                    count++;
+
+                    if (count == 15) {
+                        averagedX = averagedX / 15.f;
+                        averagedY = averagedY / 15.f;
+                        averagedZ = averagedZ / 15.f;
+                        averagedTime = averagedTime / 15;
+                        outputString = averagedX + "," + averagedY + "," + averagedZ + "," + averagedTime;
+                        //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
+
+                        if (streamMode) {
+                            for (int i = 0; i < outputPoints.size(); i++) {
+                                outputPoints.get(i).println(outputString);
+                            }
+                            // out.println(outputString);
+                        }
+
+                        count = 0;
+                        averagedX = 0;
+                        averagedY = 0;
+                        averagedZ = 0;
+                        averagedTime = 0;
+                    }
+
+
+                    if (!streamMode) {
+                        try {
+                            bufferedWriter.write(linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + sensorEvent.timestamp);
+                            bufferedWriter.newLine();
+                        } catch (IOException e) {
+                            Log.e(TAG, "Write failed...");
+                        }
+                    }
+                }
+            }).start();
         }
-
-
-        if(!streamMode)
-        {
-            try
-            {
-                bufferedWriter.write(linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp);
-                bufferedWriter.newLine();
-            }
-            catch(IOException e)
-            {
-                Log.e(TAG, "Write failed...");
-            }
-        }
-        //writeToFile();
-
-    }
-
-    private void writeToFile()
-    {
-
     }
 }
+
