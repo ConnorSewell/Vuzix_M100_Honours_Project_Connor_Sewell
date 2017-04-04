@@ -28,25 +28,48 @@ public class MyGestureSensor extends GestureSensor
 
     protected void onBackSwipe(int speed)
     {
-        started = !started;
-        activity.setDirectory();
-        if(streamMode)
+        if(!running)
         {
-           // activity.startStream();
+             streamMode = !streamMode;
+             if (streamMode)
+             {
+                activity.setModeText("Mode: Streaming");
+             }
+             else
+             {
+                activity.setModeText("Mode: Storing");
+             }
         }
         else
         {
-           // activity.startRecording();
+            Toast.makeText(activity, "Cannot swap modes whilst streaming/recording" , Toast.LENGTH_LONG);
         }
-        Toast.makeText(context, "Started", Toast.LENGTH_LONG).show();
     }
 
+    boolean running = false;
     protected void onForwardSwipe(int speed)
     {
-        streamMode = !streamMode;
-        activity.streamMode = !activity.streamMode;
-        Toast.makeText(context, "Mode Changed", Toast.LENGTH_LONG).show();
+        if(!running)
+        {
+            activity.setDirectory();
+            if (streamMode)
+            {
+                running = true;
+                activity.startStream();
+            } else
+            {
+                running = true;
+                activity.startRecording();
+            }
+        }
+        else
+        {
+            running = false;
+            activity.resetTimer();
+            activity.stopStream();
+        }
     }
+
 
     protected void onNear() {
 

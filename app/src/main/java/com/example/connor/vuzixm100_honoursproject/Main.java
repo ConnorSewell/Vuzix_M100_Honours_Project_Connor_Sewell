@@ -4,6 +4,7 @@ import android.app.Activity;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.IntentFilter;
+import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
@@ -11,6 +12,7 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.text.format.Time;
 import android.util.Log;
+import android.view.SurfaceHolder;
 import android.view.SurfaceView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,7 +43,7 @@ public class Main extends Activity
     private File mediaStorageDir;
     public boolean streamMode = false;
     private MyGestureSensor mGS;
-    private TextView textView;
+    private TextView modeText;
     private TextView timerText;
 
     int sensorsStreamReadyReady = 0;
@@ -53,17 +55,18 @@ public class Main extends Activity
 
     private boolean mediaStarted;
 
+    private VideoCapture vc;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
-        surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
 
-        textView = (TextView) findViewById(R.id.statusText);
-        textView.setText("Status: Ready");
 
+        modeText = (TextView) findViewById(R.id.modeText);
         timerText = (TextView) findViewById(R.id.timerText);
+
+        setUpGestureSensor();
 
         mManager = (WifiP2pManager) getSystemService(Context.WIFI_P2P_SERVICE);
         mChannel = mManager.initialize(this, getMainLooper(), null);
@@ -75,12 +78,21 @@ public class Main extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-        //Ref here...
-        setDirectory();
-        startRecording();
 
+        //Ref here...
+
+        surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
+        vc = new VideoCapture(surfaceView, true, outputDirectory, true, this);
+        //setDirectory();
+
+        //startStream();
         GPSHandler gps = new GPSHandler(this, this);
 
+    }
+
+    public void setModeText(String text)
+    {
+        modeText.setText(text);
     }
 
     String outputDirectory;
@@ -102,7 +114,7 @@ public class Main extends Activity
 
     public void startStream()
     {
-        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, true, this);
+        vc.initialiseStreamProperties();
         AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, true);
         GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, true);
         AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, true);
@@ -163,28 +175,39 @@ public class Main extends Activity
         mGS.register();
     }
 
+    public void stopStream()
+    {
+        //hnvideoSocketListener.ter
+    }
+
+    VideoStreamer csm;
+    AccelerometerStreamer as;
+    GyroscopeStreamer gs;
+    AudioLevelsStreamer als;
+    Thread videoSocketListener,accelerometerSocketListener, gyroscopeSocketListener, audioLevelsListener;
+
     private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh, AudioLevelsHandler alh)
     {
-        VideoStreamer csm = new VideoStreamer(vc);
-        Thread videoSocketListener = new Thread(csm, "Thread: Video");
+        csm = new VideoStreamer(vc);
+        videoSocketListener = new Thread(csm, "Thread: Video");
         videoSocketListener.start();
 
-        AccelerometerStreamer as = new AccelerometerStreamer(this, ah);
-        Thread accelerometerSocketListener = new Thread(as, "Thread: Accelerometer");
+        as = new AccelerometerStreamer(this, ah);
+        accelerometerSocketListener = new Thread(as, "Thread: Accelerometer");
         accelerometerSocketListener.start();
 
-        GyroscopeStreamer gs = new GyroscopeStreamer(this, gh);
-        Thread gyroscopeSocketListener = new Thread(gs, "Thread: Gyroscope");
+        gs = new GyroscopeStreamer(this, gh);
+        gyroscopeSocketListener = new Thread(gs, "Thread: Gyroscope");
         gyroscopeSocketListener.start();
 
-        AudioLevelsStreamer als = new AudioLevelsStreamer(alh);
-        Thread audioLevelsListener = new Thread(als, "Thread: Audio Levels");
+        als = new AudioLevelsStreamer(alh);
+        audioLevelsListener = new Thread(als, "Thread: Audio Levels");
         audioLevelsListener.start();
 
-        AudioHandler audioH = new AudioHandler();
-        AudioStreamer audioStreamer = new AudioStreamer(this, audioH);
-        Thread audioTester = new Thread(audioStreamer, "Thread: Audio");
-        audioTester.start();
+        //AudioHandler audioH = new AudioHandler();
+        //AudioStreamer audioStreamer = new AudioStreamer(this, audioH);
+        //Thread audioTester = new Thread(audioStreamer, "Thread: Audio");
+        //audioTester.start();
     }
 
     int sensorsReady = 0;
@@ -201,12 +224,21 @@ public class Main extends Activity
         }
     }
 
+    public void resetTimer()
+    {
+        timerTask.cancel();
+        timer.cancel();
+        timerText.setText("00:00:00");
+    }
+
+    TimerTask timerTask;
+    Timer timer = new Timer();
     private void setTimer()
     {
         //http://stackoverflow.com/questions/4597690/android-timer-how
         //^For basic timer code (Not including formatting or splitting into hours/mins/seconds). Accessed: 27/03/2017 @ 15:37
-        Timer timer = new Timer();
-        TimerTask t = new TimerTask()
+
+        timerTask = new TimerTask()
         {   int seconds = 0;
             int minutes = 0;
             int hours = 0;
@@ -268,7 +300,7 @@ public class Main extends Activity
                 });
             }
         };
-        timer.scheduleAtFixedRate(t,1000,1000);
+        timer.scheduleAtFixedRate(timerTask,1000,1000);
     }
 
     @Override

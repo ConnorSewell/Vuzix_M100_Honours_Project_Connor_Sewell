@@ -19,10 +19,21 @@ public class VideoStreamer implements Runnable
 {
     private VideoCapture vd;
     private String TAG = "VideoStreamer: ";
-
+    ServerSocket sv = null;
     public VideoStreamer(VideoCapture vd)
     {
         this.vd = vd;
+    }
+
+    public void closeSocket()
+    {
+        try {
+            sv.close();
+        }
+        catch(Exception e)
+        {
+
+        }
     }
 
     @Override
@@ -30,7 +41,7 @@ public class VideoStreamer implements Runnable
     {
         //vd.init();
 
-        ServerSocket sv = null;
+
         Socket client;
         OutputStream os;
         DataOutputStream dos;

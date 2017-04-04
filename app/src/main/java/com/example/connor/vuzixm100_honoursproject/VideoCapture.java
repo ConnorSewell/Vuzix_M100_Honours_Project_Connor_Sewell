@@ -63,15 +63,19 @@ public class VideoCapture implements SurfaceHolder.Callback
         this.activity = activity;
 
         camera = Camera.open();
-        mHolder = surfaceView.getHolder();
+        mHolder = this.surfaceView.getHolder();
         mHolder.addCallback(this);
+    }
 
-        if(streamMode)
-        {
-            changePreviewStreamingState();
-            setCameraProperties();
-        }
+    public void releaseCamera()
+    {
+        camera.release();
+    }
 
+    public void initialiseStreamProperties()
+    {
+        changePreviewStreamingState();
+        setCameraProperties();
     }
 
     private void setCameraProperties()
@@ -81,8 +85,8 @@ public class VideoCapture implements SurfaceHolder.Callback
         parameters.setPreviewSize(320, 240);
         camera.setParameters(parameters);
 
-        mHolder = surfaceView.getHolder();
-        mHolder.addCallback(this);
+        //mHolder = surfaceView.getHolder();
+        //mHolder.addCallback(this);
     }
 
     public void init()
@@ -96,8 +100,9 @@ public class VideoCapture implements SurfaceHolder.Callback
 
                mr = new MediaRecorder();
 
-
-         camera.unlock();
+        camera.release();
+                camera = Camera.open();
+        camera.unlock();
 
         //activity.getMediaRecorder().setAudioSamplingRate(8000);
         mr.setCamera(camera);

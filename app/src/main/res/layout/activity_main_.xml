@@ -25,8 +25,8 @@
     <TextView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Status: Initialising"
-        android:id="@+id/statusText"
+        android:text="Mode: Streaming"
+        android:id="@+id/modeText"
         android:layout_marginTop="60dp"
         android:layout_marginRight="23dp"
         android:layout_below="@+id/textView"
