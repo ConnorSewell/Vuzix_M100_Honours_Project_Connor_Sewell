@@ -40,6 +40,8 @@ public class AccelerometerHandler implements SensorEventListener
     private boolean streamMode;
     private Main activity;
 
+    private long startTime;
+
     public ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
 
     public AccelerometerHandler(Main activity, String outputDirectory, boolean streamMode)
@@ -65,6 +67,11 @@ public class AccelerometerHandler implements SensorEventListener
             }
         }
 
+    }
+
+    public void setStartTime(long startTime)
+    {
+        this.startTime = startTime;
     }
 
     public void registerSensorListener()
@@ -93,6 +100,7 @@ public class AccelerometerHandler implements SensorEventListener
     private final float alpha = 0.8f;
     private SensorEvent sensorEvent;
     boolean busy = false;
+    private String ratesAsString = null;
 
     @Override
     public final void onSensorChanged(SensorEvent event)
@@ -104,48 +112,29 @@ public class AccelerometerHandler implements SensorEventListener
             new Thread(new Runnable() {
                 public void run()
                 {
-                    gravity[0] = alpha * gravity[0] + (1 - alpha) * sensorEvent.values[0];
-                    gravity[1] = alpha * gravity[1] + (1 - alpha) * sensorEvent.values[1];
-                    gravity[2] = alpha * gravity[2] + (1 - alpha) * sensorEvent.values[2];
+                    //gravity[0] = alpha * gravity[0] + (1 - alpha) * sensorEvent.values[0];
+                    //gravity[1] = alpha * gravity[1] + (1 - alpha) * sensorEvent.values[1];
+                    //gravity[2] = alpha * gravity[2] + (1 - alpha) * sensorEvent.values[2];
 
-                    linearAcceleration[0] = sensorEvent.values[0] - gravity[0];
-                    linearAcceleration[1] = sensorEvent.values[1] - gravity[1];
-                    linearAcceleration[2] = sensorEvent.values[2] - gravity[2];
+                    linearAcceleration[0] = sensorEvent.values[0];
+                    linearAcceleration[1] = sensorEvent.values[1];
+                    linearAcceleration[2] = sensorEvent.values[2];
                     time = sensorEvent.timestamp;
 
-                    averagedX = averagedX + linearAcceleration[0];
-                    averagedY = averagedY + linearAcceleration[1];
-                    averagedZ = averagedZ + linearAcceleration[2];
-                    averagedTime = averagedTime + sensorEvent.timestamp;
-                    count++;
+                    ratesAsString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2];
 
-                    if (count == 15) {
-                        averagedX = averagedX / 15.f;
-                        averagedY = averagedY / 15.f;
-                        averagedZ = averagedZ / 15.f;
-                        averagedTime = averagedTime / 15;
-                        outputString = averagedX + "," + averagedY + "," + averagedZ + "," + averagedTime;
-                        //outputString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + event.timestamp;
-
-                        if (streamMode) {
-                            for (int i = 0; i < outputPoints.size(); i++) {
-                                System.out.println("Here...");
-                                outputPoints.get(i).println(outputString);
-                            }
-                            // out.println(outputString);
+                    long time = System.nanoTime() - startTime;
+                    if (streamMode)
+                    {
+                        for (int i = 0; i < outputPoints.size(); i++)
+                        {
+                            outputPoints.get(i).println(ratesAsString + "," + time);
                         }
-
-                        count = 0;
-                        averagedX = 0;
-                        averagedY = 0;
-                        averagedZ = 0;
-                        averagedTime = 0;
                     }
-
 
                     if (!streamMode) {
                         try {
-                            bufferedWriter.write(linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2] + "," + sensorEvent.timestamp);
+                            bufferedWriter.write(ratesAsString + "," + String.valueOf(sensorEvent.timestamp));
                             bufferedWriter.newLine();
                         } catch (IOException e) {
                             Log.e(TAG, "Write failed...");

@@ -9,8 +9,11 @@ import android.location.LocationManager;
 import android.os.Bundle;
 import android.app.Activity;
 import android.util.Log;
+import android.widget.TextView;
 import android.widget.Toast;
 
+
+import org.w3c.dom.Text;
 
 import java.security.Security;
 
@@ -24,9 +27,11 @@ public class GPSHandler
     private LocationManager lms;
     private LocationManager locationManager;
     private final Activity activity;
+    public TextView box2;
 
-    public GPSHandler(Context context, Activity activity_in)
+    public GPSHandler(Context context, Activity activity_in, TextView box)
     {
+        box2 = box;
         activity = activity_in;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -41,6 +46,8 @@ public class GPSHandler
             public void onLocationChanged(Location location)
             {
                 Toast.makeText(activity, "Longitude: " + location.getLongitude(), Toast.LENGTH_LONG).show();
+                //System.out.println("OMG CHANGED! " + location.getLongitude());
+                box2.setText(String.valueOf(location.getLongitude()));
             }
 
             @Override

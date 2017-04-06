@@ -27,7 +27,6 @@ public class AccelerometerStreamer  implements Runnable
     {
         this.context = context;
         this.ah = ah;
-
     }
 
     @Override

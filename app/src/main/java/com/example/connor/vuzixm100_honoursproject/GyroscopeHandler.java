@@ -45,6 +45,7 @@ public class GyroscopeHandler implements SensorEventListener
     private String TAG = "GyroscopeHandler";
     private Main activity;
 
+    private long startTime;
     public ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
 
 
@@ -124,34 +125,38 @@ public class GyroscopeHandler implements SensorEventListener
                         deltaRotationVector[2] = sinThetaOverTwo * axisZ;
                         deltaRotationVector[3] = cosThetaOverTwo;
 
-                        averagedX = averagedX + axisX;
-                        averagedY = averagedY + axisY;
-                        averagedZ = averagedZ + axisZ;
-                        averagedTime = averagedTime + sensorEvent.timestamp;
-                        count++;
+                        //averagedX = averagedX + axisX;
+                        //averagedY = averagedY + axisY;
+                        //averagedZ = averagedZ + axisZ;
+                        //averagedTime = averagedTime + sensorEvent.timestamp;
+                        //count++;
 
-                        if (count == 15) {
-                            averagedX = averagedX / 15.f;
-                            averagedY = averagedY / 15.f;
-                            averagedZ = averagedZ / 15.f;
-                            averagedTime = averagedTime / 15;
-                            outputString = axisX + "," + axisY + "," + axisZ + "," + sensorEvent.timestamp; //Remove
-                            if (streamMode) {
+                        //if (count == 15) {
+                           // averagedX = averagedX / 15.f;
+                           // averagedY = averagedY / 15.f;
+                           // averagedZ = averagedZ / 15.f;
+                           // averagedTime = averagedTime / 15;
+
+                            outputString = axisX + "," + axisY + "," + axisZ; //Remove
+
+                        if (streamMode)
+                            {
+                                long currTime = System.nanoTime();
                                 for (int i = 0; i < outputPoints.size(); i++) {
-                                    outputPoints.get(i).println(outputString);
+                                    outputPoints.get(i).println(outputString + "," + (currTime - startTime));
                                 }
-                            }
+                          //  }
 
-                            count = 0;
-                            averagedX = 0;
-                            averagedY = 0;
-                            averagedZ = 0;
-                            averagedTime = 0;
+                            //count = 0;
+                            //averagedX = 0;
+                            //averagedY = 0;
+                            //averagedZ = 0;
+                            //averagedTime = 0;
                         }
 
                         if (!streamMode) {
                             try {
-                                bufferedWriter.write(axisX + "," + axisY + "," + axisZ + "," + sensorEvent.timestamp);
+                                bufferedWriter.write(outputString + "," + String.valueOf(sensorEvent.timestamp));
                                 bufferedWriter.newLine();
                             } catch (IOException e) {
                                 Log.e(TAG, e.toString());
@@ -161,6 +166,8 @@ public class GyroscopeHandler implements SensorEventListener
                     timestamp = sensorEvent.timestamp;
                     float[] deltaRotationMatrix = new float[9];
                     SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
+
+
                     busy = false;
                 }
             }).start();
@@ -172,8 +179,29 @@ public class GyroscopeHandler implements SensorEventListener
         }
     }
 
-    private void writeToFile()
+    public void setStartTime(long startTime)
     {
-
+        this.startTime = startTime;
     }
+
+    private float[] matrixMultiplication(float[] a, float[] b)
+    {
+        float[] result = new float[9];
+
+        result[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
+        result[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
+        result[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
+
+        result[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
+        result[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
+        result[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
+
+        result[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
+        result[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
+        result[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
+
+        return result;
+    }
+
+
 }

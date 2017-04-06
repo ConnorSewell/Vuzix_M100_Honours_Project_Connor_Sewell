@@ -42,7 +42,10 @@ public class AudioLevelsHandler
     private Context context;
     private MediaRecorder mediaRecorder;
 
+    private long startTime;
+
     private ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
+    private long currTime = 0;
 
     public AudioLevelsHandler(Main activity, String outputDirectory, boolean streamMode)
     {
@@ -55,11 +58,6 @@ public class AudioLevelsHandler
         {
             public void run()
             {
-                int valsAdded = 0;
-                int count = 0;
-                long nanos = 0;
-                int accumulator = 0;
-
                 mediaRecorder = new MediaRecorder();
                 mediaRecorder.setAudioSamplingRate(8000);
                 mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
@@ -84,25 +82,11 @@ public class AudioLevelsHandler
                         Thread.sleep(20);
 
                         int amplitude = mediaRecorder.getMaxAmplitude();
-                        if (amplitude > 0) {
-                            accumulator = accumulator + amplitude;
-                            nanos = nanos + System.nanoTime();
-                            valsAdded++;
-                        }
-                        count++;
-                        if (count == 10)
+                        currTime = System.nanoTime();
+                        for(int i = 0; i < outputPoints.size(); i++)
                         {
-                            for(int i = 0; i < outputPoints.size(); i++)
-                            {
-                                outputPoints.get(i).println(String.valueOf(accumulator / valsAdded) + "," + String.valueOf(nanos / valsAdded));
-                            }
-
-                            count = 0;
-                            nanos = 0;
-                            accumulator = 0;
-                            valsAdded = 0;
+                            outputPoints.get(i).println(String.valueOf(amplitude) + "," + String.valueOf(currTime - startTime));
                         }
-
                     }
                     catch (Exception e)
                     {
@@ -116,6 +100,11 @@ public class AudioLevelsHandler
     public void addOutputPoint(PrintWriter out)
     {
         outputPoints.add(out);
+    }
+
+    public void setStartTime(long startTime)
+    {
+        this.startTime = startTime;
     }
 }
 

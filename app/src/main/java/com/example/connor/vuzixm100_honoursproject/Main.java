@@ -10,6 +10,7 @@ import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.SystemClock;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -65,6 +66,7 @@ public class Main extends Activity
 
         modeText = (TextView) findViewById(R.id.modeText);
         timerText = (TextView) findViewById(R.id.timerText);
+        TextView lolTest = (TextView) findViewById(R.id.loltest);
 
         setUpGestureSensor();
 
@@ -86,7 +88,7 @@ public class Main extends Activity
         //setDirectory();
 
         //startStream();
-        GPSHandler gps = new GPSHandler(this, this);
+        GPSHandler gps = new GPSHandler(this, this, lolTest);
 
     }
 
@@ -188,6 +190,11 @@ public class Main extends Activity
 
     private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh, AudioLevelsHandler alh)
     {
+        long currTime = System.nanoTime();
+        ah.setStartTime(currTime);
+        gh.setStartTime(currTime);
+        alh.setStartTime(currTime);
+
         csm = new VideoStreamer(vc);
         videoSocketListener = new Thread(csm, "Thread: Video");
         videoSocketListener.start();

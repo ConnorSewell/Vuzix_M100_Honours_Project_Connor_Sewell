@@ -41,8 +41,7 @@ import java.util.TimerTask;
  * http://stackoverflow.com/questions/1817742/how-can-i-capture-a-video-recording-on-android
  * ^ Also used to aid with video capturing due to docs code being a bit "poor". Accessed: 04/02/2017 @ 20:27
  */
-public class VideoCapture implements SurfaceHolder.Callback
-{
+public class VideoCapture implements SurfaceHolder.Callback {
     private Camera camera;
     private SurfaceView surfaceView;
     private SurfaceHolder mHolder;
@@ -55,8 +54,7 @@ public class VideoCapture implements SurfaceHolder.Callback
     private Main activity;
     private ArrayList<DataOutputStream> outputPoints = new ArrayList<DataOutputStream>();
 
-    public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode, Main activity)
-    {
+    public VideoCapture(SurfaceView surfaceView, boolean mr1, String outputDirectory, boolean streamMode, Main activity) {
         this.surfaceView = surfaceView;
         this.outputDirectory = outputDirectory;
         this.streamMode = streamMode;
@@ -67,19 +65,17 @@ public class VideoCapture implements SurfaceHolder.Callback
         mHolder.addCallback(this);
     }
 
-    public void releaseCamera()
-    {
+
+    public void releaseCamera() {
         camera.release();
     }
 
-    public void initialiseStreamProperties()
-    {
+    public void initialiseStreamProperties() {
         changePreviewStreamingState();
         setCameraProperties();
     }
 
-    private void setCameraProperties()
-    {
+    private void setCameraProperties() {
         Camera.Parameters parameters = camera.getParameters();
         parameters.setPreviewFpsRange(24000, 24000);
         parameters.setPreviewSize(320, 240);
@@ -89,95 +85,84 @@ public class VideoCapture implements SurfaceHolder.Callback
         //mHolder.addCallback(this);
     }
 
-    public void init()
-    {
-   //     mHolder = surfaceView.getHolder();
-   //     mHolder.addCallback(this);
-        new Thread(new Runnable()
-        {
+    public void init() {
+        camera = Camera.open();
+        mHolder = surfaceView.getHolder();
+        mHolder.addCallback(this);
+
+        new Thread(new Runnable() {
             public void run()
             {
+                camera.unlock();
+                mr = new MediaRecorder();
+                mr.setCamera(camera);
+                mr.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
+                mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-               mr = new MediaRecorder();
+                CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
+                cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
+                cp.videoFrameRate = 24;
+                //https://developer.android.com/guide/topics/media/media-formats.html#recommendations
+                //^ Based on recommended settings seen here. (Although AAC-LP isnt an option). Referenced: 30/03/2017 @ 21:46
+                //cp.videoBitRate = 2000000;
+                //cp.audioBitRate = 192000;
+                //cp.audioCodec = MediaRecorder.AudioEncoder.AAC;
+                cp.audioChannels = 1;
+                cp.audioSampleRate = 8000;
+                mr.setProfile(cp);
 
-        camera.release();
-                camera = Camera.open();
-        camera.unlock();
+                File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
+                mr.setOutputFile(mediaFile.toString());
 
-        //activity.getMediaRecorder().setAudioSamplingRate(8000);
-        mr.setCamera(camera);
-        mr.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
-        mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
 
-        //activity.getMediaRecorder().setAudioChannels(1);
-        //activity.getMediaRecorder().setAudioEncodingBitRate();
-
-        CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_HIGH);
-        cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
-        cp.videoFrameRate = 24;
-        //https://developer.android.com/guide/topics/media/media-formats.html#recommendations
-        //^ Based on recommended settings seen here. (Although AAC-LP isnt an option). Referenced: 30/03/2017 @ 21:46
-        //cp.videoBitRate = 2000000;
-        //cp.audioBitRate = 192000;
-        //cp.audioCodec = MediaRecorder.AudioEncoder.AAC;
-        cp.audioChannels = 1;
-        cp.audioSampleRate = 8000;
-        mr.setProfile(cp);
-
-        File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");
-        mr.setOutputFile(mediaFile.toString());
-
-        //activity.setSensorReadyStoreMode();
-
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-
-                try {
-                    mr.setPreviewDisplay(mHolder.getSurface());
-                } catch (Exception e) {
-                    System.out.println("Error on set preview display:" + String.valueOf(e));
-                }
-                try {
-                    mr.prepare();
-                } catch (Exception e) {
-                    System.out.println("Error on prepare: " + String.valueOf(e));
-                }
-                try {
+                        try {
+                            mr.setPreviewDisplay(mHolder.getSurface());
+                        } catch (Exception e) {
+                            System.out.println("Error on set preview display:" + String.valueOf(e));
+                        }
+                        try {
+                            mr.prepare();
+                        } catch (Exception e) {
+                            System.out.println("Error on prepare: " + String.valueOf(e));
+                        }
+                        try {
 
 
-                } catch (Exception e) {
-                    System.out.println("Error on start: " + String.valueOf(e));
-                }
-            }
-        }, 500);
+                        } catch (Exception e) {
+                            System.out.println("Error on start: " + String.valueOf(e));
+                        }
+                    }
+                }, 500);
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mr.start();
-                activity.setSensorReady();
-            }
-        }, 2000);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mr.start();
+                        activity.setSensorReady();
+                    }
+                }, 2000);
 
-        new Timer().schedule(new TimerTask() {
-            @Override
-            public void run() {
-                mr.stop();
-            }
-        }, 120000);
+                new Timer().schedule(new TimerTask() {
+                    @Override
+                    public void run() {
+                        mr.stop();
+                    }
+                }, 25000);
             }
         }).start();
     }
 
     boolean outputPointsNull = true;
-    public void addOutputPoint(DataOutputStream outputPoint)
-    {
+    long currTime = 0;
+
+    public void addOutputPoint(DataOutputStream outputPoint) {
         outputPoints.add(outputPoint);
     }
 
-    public void changePreviewStreamingState()
-    {
+    public void changePreviewStreamingState() {
         camera.setPreviewCallback(new Camera.PreviewCallback() {
             @Override
             public void onPreviewFrame(final byte[] data, Camera camera) {
@@ -196,18 +181,15 @@ public class VideoCapture implements SurfaceHolder.Callback
                 //^ This method of sending byte array taken from above array (starts in VideoStreamer class)
                 //created in VideoStreamer class. Accessed: 08/03/2017 @ 21:00
                 int arrayLength = byteArray.length;
-                for(int i = 0; i < outputPoints.size(); i++)
-                {
-                    try
-                    {
+                for (int i = 0; i < outputPoints.size(); i++) {
+                    try {
                         outputPoints.get(i).writeInt(arrayLength);
                         if (arrayLength > 0)
                         {
                             outputPoints.get(i).write(byteArray, 0, arrayLength);
                             outputPoints.get(i).flush();
                         }
-                    } catch (IOException io)
-                    {
+                    } catch (IOException io) {
                         Log.e(TAG, io.toString());
                     }
                 }
@@ -216,16 +198,12 @@ public class VideoCapture implements SurfaceHolder.Callback
     }
 
     @Override
-    public void surfaceCreated(SurfaceHolder holder)
-    {
-        try
-        {
+    public void surfaceCreated(SurfaceHolder holder) {
+        try {
             camera.setPreviewDisplay(mHolder);
             camera.startPreview();
 
-        }
-        catch(Exception e)
-        {
+        } catch (Exception e) {
             Log.e(TAG, e.toString());
         }
     }
@@ -237,8 +215,7 @@ public class VideoCapture implements SurfaceHolder.Callback
 
     @Override
     public void surfaceChanged(SurfaceHolder holder, int format, int w, int h) {
-        if (mHolder.getSurface() == null)
-        {
+        if (mHolder.getSurface() == null) {
             // preview surface does not exist
             return;
         }
