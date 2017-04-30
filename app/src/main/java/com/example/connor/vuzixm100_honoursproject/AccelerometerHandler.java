@@ -6,6 +6,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.io.BufferedWriter;
@@ -14,6 +16,7 @@ import java.io.FileOutputStream;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -22,8 +25,7 @@ import java.util.List;
  * https://developer.android.com/guide/topics/sensors/sensors_overview.html
  * ^ All sensor functionality/code taken from the above link. Accessed: 16/01/2017 @ 18:57.
  */
-public class AccelerometerHandler implements SensorEventListener
-{
+public class AccelerometerHandler implements SensorEventListener {
     private SensorManager mSensorManager;
     private Sensor accelerometerSensor;
     private Context context;
@@ -43,9 +45,11 @@ public class AccelerometerHandler implements SensorEventListener
     private long startTime;
 
     public ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
+    public ArrayList<Socket> sockets = new ArrayList<Socket>();
 
-    public AccelerometerHandler(Main activity, String outputDirectory, boolean streamMode)
-    {
+    Handler acceleromterUpdateLooper;
+
+    public AccelerometerHandler(Main activity, String outputDirectory, boolean streamMode) {
         this.context = activity;
         this.activity = activity;
         this.outputDirectory = outputDirectory;
@@ -55,97 +59,131 @@ public class AccelerometerHandler implements SensorEventListener
         gravity = new float[3];
         linearAcceleration = new float[3];
 
-        if(!streamMode)
-        {
+        HandlerThread accelerometerUpdateThread = new HandlerThread("Accelerometer Update Handler");
+        accelerometerUpdateThread.start();
+        acceleromterUpdateLooper = new Handler(accelerometerUpdateThread.getLooper());
+    }
+
+    public void setFileOutput(String outputDirectory)
+    {
+        if (!streamMode) {
             accelerometerTextFile = new File(outputDirectory + File.separator + "AccelerometerData.txt");
-            try
-            {
+            try {
                 outputFileWriter = new FileWriter(accelerometerTextFile);
                 bufferedWriter = new BufferedWriter(outputFileWriter);
             } catch (IOException e) {
                 Log.e(TAG, "File not found...");
             }
         }
-
     }
 
-    public void setStartTime(long startTime)
-    {
+    public void setStartTime(long startTime) {
         this.startTime = startTime;
+    }
+
+    public void setStreamMode(boolean streamMode) {
+        this.streamMode = streamMode;
     }
 
     public void registerSensorListener()
     {
-        mSensorManager.registerListener(this, accelerometerSensor, 20000);
+        mSensorManager.registerListener(this, accelerometerSensor, 20000, acceleromterUpdateLooper);
         activity.setSensorReady();
     }
 
-    public void setOutputPoint(PrintWriter out)
-    {
+    public void stopListener() {
+
+        try
+        {
+            mSensorManager.unregisterListener(this, accelerometerSensor);
+        }
+        catch(Exception e)
+        {
+            Log.e(TAG, "Likely listener was not registered... ERROR: " + e.toString());
+        }
+    }
+
+    public void setOutputPoint(PrintWriter out, Socket socket) {
         this.outputPoints.add(out);
+        sockets.add(socket);
     }
 
     @Override
-    public final void onAccuracyChanged(Sensor sensor, int accuracy)
-    {
+    public final void onAccuracyChanged(Sensor sensor, int accuracy) {
         Log.i(TAG, "Accelerometer accuracy changed...");
     }
 
-    private String outputString;
-    private int count = 0;
-    private float averagedX = 0.f;
-    private float averagedY = 0.f;
-    private float averagedZ = 0.f;
-    private long averagedTime = 0;
-    private final float alpha = 0.8f;
-    private SensorEvent sensorEvent;
+
     boolean busy = false;
     private String ratesAsString = null;
 
+    public void closeBuffer()
+    {
+        try
+        {
+            bufferedWriter.close();
+        }
+        catch(Exception e)
+        {
+            Log.e(TAG, "Trouble closing.. attempting flush");
+            try
+            {
+                bufferedWriter.flush();
+            }
+            catch(Exception i)
+            {
+                Log.e(TAG, "Failed to flush. Warning: File likely missing end data");
+            }
+        }
+    }
+
+
+    boolean valuesReceived = false;
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
-        if (!busy)
-        {
-            this.sensorEvent = event;
-            busy = true;
-            new Thread(new Runnable() {
-                public void run()
-                {
-                    //gravity[0] = alpha * gravity[0] + (1 - alpha) * sensorEvent.values[0];
-                    //gravity[1] = alpha * gravity[1] + (1 - alpha) * sensorEvent.values[1];
-                    //gravity[2] = alpha * gravity[2] + (1 - alpha) * sensorEvent.values[2];
+                    linearAcceleration[0] = event.values[0];
+                    linearAcceleration[1] = event.values[1];
+                    linearAcceleration[2] = event.values[2];
+                    time = event.timestamp;
 
-                    linearAcceleration[0] = sensorEvent.values[0];
-                    linearAcceleration[1] = sensorEvent.values[1];
-                    linearAcceleration[2] = sensorEvent.values[2];
-                    time = sensorEvent.timestamp;
-
-                    ratesAsString = linearAcceleration[0] + "," + linearAcceleration[1] + "," + linearAcceleration[2];
+                    ratesAsString = String.valueOf(linearAcceleration[0]) + "," + String.valueOf(linearAcceleration[1]) + "," + String.valueOf(linearAcceleration[2]);
 
                     long time = System.nanoTime() - startTime;
-                    if (streamMode)
-                    {
+                    if (streamMode) {
                         for (int i = 0; i < outputPoints.size(); i++)
                         {
-                            outputPoints.get(i).println(ratesAsString + "," + time);
+                            try
+                            {
+                                outputPoints.get(i).println(ratesAsString + "," + time);
+                            }
+                            catch(Exception e)
+                            {
+                                if(sockets.get(i).isClosed())
+                                {
+                                    outputPoints.remove(i);
+                                    sockets.remove(i);
+                                }
+                            }
                         }
                     }
 
-                    if (!streamMode) {
+                    if (!streamMode)
+                    {
                         try {
-                            bufferedWriter.write(ratesAsString + "," + String.valueOf(sensorEvent.timestamp));
+                            bufferedWriter.write(ratesAsString + "," + String.valueOf(event.timestamp));
                             bufferedWriter.newLine();
+                            if(!valuesReceived)
+                            {
+                                activity.videoRequirementsToStart();
+                                valuesReceived = true;
+                            }
                         } catch (IOException e) {
                             Log.e(TAG, "Write failed...");
                         }
+
                     }
                     busy = false;
                 }
 
-
-            }).start();
-        }
-    }
 }
-

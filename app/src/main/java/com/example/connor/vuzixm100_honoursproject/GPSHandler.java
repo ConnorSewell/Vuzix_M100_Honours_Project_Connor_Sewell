@@ -27,11 +27,9 @@ public class GPSHandler
     private LocationManager lms;
     private LocationManager locationManager;
     private final Activity activity;
-    public TextView box2;
 
-    public GPSHandler(Context context, Activity activity_in, TextView box)
+    public GPSHandler(Context context, Activity activity_in)
     {
-        box2 = box;
         activity = activity_in;
         locationManager = (LocationManager) context.getSystemService(Context.LOCATION_SERVICE);
 
@@ -46,14 +44,11 @@ public class GPSHandler
             public void onLocationChanged(Location location)
             {
                 Toast.makeText(activity, "Longitude: " + location.getLongitude(), Toast.LENGTH_LONG).show();
-                //System.out.println("OMG CHANGED! " + location.getLongitude());
-                box2.setText(String.valueOf(location.getLongitude()));
             }
 
             @Override
             public void onStatusChanged(String provider, int status, Bundle extras)
             {
-                //Toast.makeText(activity, "Status Changed", Toast.LENGTH_LONG).show();
             }
 
             @Override

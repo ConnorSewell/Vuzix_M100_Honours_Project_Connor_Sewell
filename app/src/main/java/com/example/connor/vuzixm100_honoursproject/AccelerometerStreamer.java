@@ -13,7 +13,7 @@ import java.net.Socket;
 
 /**
  * Created by Connor on 01/03/2017.
- *
+ * Waits for incoming connections. When connection received, creates a writer to the client and passes it to accelerometer handler
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
@@ -27,11 +27,26 @@ public class AccelerometerStreamer  implements Runnable
     {
         this.context = context;
         this.ah = ah;
+        this.ah.registerSensorListener();
+    }
+
+    ServerSocket sv = null;
+    public void closeSocket()
+    {
+        try
+        {
+            ah.stopListener();
+            ah = null;
+            sv.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error");
+        }
     }
 
     @Override
     public void run() {
-        ServerSocket sv = null;
         Socket client;
         InputStream inputStream;
         PrintWriter out;
@@ -45,17 +60,17 @@ public class AccelerometerStreamer  implements Runnable
             run();
         }
 
-        while (true)
+        while (true && !sv.isClosed())
         {
             try
             {
                 client = sv.accept();
+                client.setSoTimeout(5000);
                 Log.i(TAG, "IP: " + client.getInetAddress());
                 out = new PrintWriter(client.getOutputStream(), true);
-                ah.setOutputPoint(out);
+                ah.setOutputPoint(out, client);
             } catch (IOException e) {
                 Log.e(TAG, e.toString());
-                //run();
             }
         }
     }

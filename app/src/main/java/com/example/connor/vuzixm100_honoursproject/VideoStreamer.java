@@ -3,10 +3,14 @@ package com.example.connor.vuzixm100_honoursproject;
 import android.content.Context;
 import android.util.Log;
 
+import java.io.BufferedOutputStream;
 import java.io.DataOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.io.PrintWriter;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -27,44 +31,47 @@ public class VideoStreamer implements Runnable
 
     public void closeSocket()
     {
-        try {
+        try
+        {
+            vd.releaseBuffer();
             sv.close();
         }
         catch(Exception e)
-        {
-
-        }
+        {}
     }
 
     @Override
     public void run()
     {
-        //vd.init();
-
-
         Socket client;
         OutputStream os;
         DataOutputStream dos;
 
         try
         {
+            //sv = new DatagramSocket(8888);
             sv = new ServerSocket(8888);
+            sv.setSoTimeout(5000);
+            sv.setPerformancePreferences(0, 1, 0);
         }
         catch(IOException e)
         {
-            Log.e(TAG, "Trouble creating server socket");
             run();
         }
-
-        while(true) {
-            try {
+        byte[] receive = new byte[8];
+        while(true && !sv.isClosed())
+        {
+            try
+            {
                 client = sv.accept();
+                client.setTcpNoDelay(true);
+                client.setSoTimeout(5000);
                 os = client.getOutputStream();
-                dos = new DataOutputStream(os);
-                vd.addOutputPoint(dos);
+                dos = new DataOutputStream(new BufferedOutputStream(os));
+                vd.addOutputPoint(dos, client);
+
             } catch (Exception e) {
                 Log.e("Error: ", e.toString());
-                run();
             }
         }
     }

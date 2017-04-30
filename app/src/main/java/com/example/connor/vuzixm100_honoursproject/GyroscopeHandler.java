@@ -6,6 +6,8 @@ import android.hardware.Sensor;
 import android.hardware.SensorEvent;
 import android.hardware.SensorEventListener;
 import android.hardware.SensorManager;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.util.Log;
 
 import java.io.BufferedWriter;
@@ -14,6 +16,7 @@ import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.math.*;
+import java.net.Socket;
 import java.util.ArrayList;
 
 /**
@@ -47,7 +50,9 @@ public class GyroscopeHandler implements SensorEventListener
 
     private long startTime;
     public ArrayList<PrintWriter> outputPoints = new ArrayList<PrintWriter>();
+    public ArrayList<Socket> sockets = new ArrayList<Socket>();
 
+    Handler gyroscopeUpdateLooper;
 
     public GyroscopeHandler(Main activity, String outputDirectory, boolean streamMode)
     {
@@ -57,27 +62,53 @@ public class GyroscopeHandler implements SensorEventListener
         this.streamMode = streamMode;
         mSensorManager = (SensorManager) context.getSystemService(Context.SENSOR_SERVICE);
         gyroscopeSensor = mSensorManager.getDefaultSensor(Sensor.TYPE_GYROSCOPE);
-        gyroscopeOutputFile = new File(outputDirectory + File.separator + "GyroscopeData.txt");
-        try
-        {
-            outputFileWriter = new FileWriter(gyroscopeOutputFile);
-            bufferedWriter = new BufferedWriter(outputFileWriter);
-        }
-        catch(IOException e)
-        {
-            Log.e(TAG, "File not found...");
+
+        HandlerThread gyroscopeUpdateThread = new HandlerThread("Accelerometer Update Handler");
+        gyroscopeUpdateThread.start();
+        gyroscopeUpdateLooper = new Handler(gyroscopeUpdateThread.getLooper());
+
+    }
+
+    public void setFileOutput(String outputDirectory)
+    {
+        if (!streamMode) {
+            gyroscopeOutputFile = new File(outputDirectory + File.separator + "GyroscopeData.txt");
+            try {
+                outputFileWriter = new FileWriter(gyroscopeOutputFile);
+                bufferedWriter = new BufferedWriter(outputFileWriter);
+            } catch (IOException e) {
+                Log.e(TAG, "File not found...");
+            }
         }
     }
 
-    public void addOutputPoint(PrintWriter out)
+    public void addOutputPoint(PrintWriter out, Socket socket)
     {
         outputPoints.add(out);
+        sockets.add(socket);
+    }
+
+    public void setStreamMode(boolean streamMode)
+    {
+        this.streamMode = streamMode;
     }
 
     public void registerSensorListener()
     {
-        mSensorManager.registerListener(this, gyroscopeSensor, 20000);
+        mSensorManager.registerListener(this, gyroscopeSensor, 20000, gyroscopeUpdateLooper);
         activity.setSensorReady();
+    }
+
+    public void stopListener()
+    {
+        try
+        {
+            mSensorManager.unregisterListener(this, gyroscopeSensor);
+        }
+        catch(Exception e)
+        {
+            Log.e(TAG, "Likely listener was not registered... ERROR: " + e.toString());
+        }
     }
 
     @Override
@@ -86,27 +117,48 @@ public class GyroscopeHandler implements SensorEventListener
         // Do something here if sensor accuracy changes.
     }
 
+    public void closeBuffer()
+    {
+        try
+        {
+            bufferedWriter.close();
+        }
+        catch(Exception e)
+        {
+            Log.e(TAG, "Trouble closing.. attempting flush");
+            try
+            {
+                bufferedWriter.flush();
+            }
+            catch(Exception i)
+            {
+                Log.e(TAG, "Failed to flush. Warning: File likely missing end data");
+            }
+        }
+    }
+
     boolean busy = false;
+    boolean valuesReceived = false;
     SensorEvent sensorEvent;
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
         //Set here?
-        if (!busy)
-        {
-            this.sensorEvent = event;
-            busy = true;
-            new Thread(new Runnable()
-            {
-                @Override
-                public void run()
-                {
+        //if (!busy)
+        //{
+        //    this.sensorEvent = event;
+        //    busy = true;
+        //    new Thread(new Runnable()
+        //    {
+        //        @Override
+        //        public void run()
+        //        {
                     if (timestamp != 0) {
-                        final float dT = (sensorEvent.timestamp - timestamp) * NS2S;
+                        final float dT = (event.timestamp - timestamp) * NS2S;
 
-                        float axisX = sensorEvent.values[0];
-                        float axisY = sensorEvent.values[1];
-                        float axisZ = sensorEvent.values[2];
+                        float axisX = event.values[0];
+                        float axisY = event.values[1];
+                        float axisZ = event.values[2];
 
                         float omegaMagnitude = (float) Math.sqrt(axisX * axisX + axisY * axisY + axisZ * axisZ);
 
@@ -117,66 +169,60 @@ public class GyroscopeHandler implements SensorEventListener
                             axisZ /= omegaMagnitude;
                         }
 
-                        float thetaOverTwo = omegaMagnitude * dT / 2.0f;
-                        float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
-                        float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
-                        deltaRotationVector[0] = sinThetaOverTwo * axisX;
-                        deltaRotationVector[1] = sinThetaOverTwo * axisY;
-                        deltaRotationVector[2] = sinThetaOverTwo * axisZ;
-                        deltaRotationVector[3] = cosThetaOverTwo;
+                        //float thetaOverTwo = omegaMagnitude * dT / 2.0f;
+                        //float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
+                        //float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
+                        //deltaRotationVector[0] = sinThetaOverTwo * axisX;
+                        //deltaRotationVector[1] = sinThetaOverTwo * axisY;
+                        //deltaRotationVector[2] = sinThetaOverTwo * axisZ;
+                        //deltaRotationVector[3] = cosThetaOverTwo;
 
-                        //averagedX = averagedX + axisX;
-                        //averagedY = averagedY + axisY;
-                        //averagedZ = averagedZ + axisZ;
-                        //averagedTime = averagedTime + sensorEvent.timestamp;
-                        //count++;
-
-                        //if (count == 15) {
-                           // averagedX = averagedX / 15.f;
-                           // averagedY = averagedY / 15.f;
-                           // averagedZ = averagedZ / 15.f;
-                           // averagedTime = averagedTime / 15;
-
-                            outputString = axisX + "," + axisY + "," + axisZ; //Remove
+                        outputString = axisX + "," + axisY + "," + axisZ; //Remove
 
                         if (streamMode)
                             {
                                 long currTime = System.nanoTime();
-                                for (int i = 0; i < outputPoints.size(); i++) {
-                                    outputPoints.get(i).println(outputString + "," + (currTime - startTime));
-                                }
-                          //  }
+                                for (int i = 0; i < outputPoints.size(); i++)
+                                {
+                                    try {
+                                        outputPoints.get(i).println(outputString + "," + (currTime - startTime));
+                                    }
+                                    catch(Exception e)
+                                    {
+                                        if(sockets.get(i).isClosed())
+                                        {
+                                            outputPoints.remove(i);
+                                            sockets.remove(i);
+                                        }
+                                    }
+                                }}
 
-                            //count = 0;
-                            //averagedX = 0;
-                            //averagedY = 0;
-                            //averagedZ = 0;
-                            //averagedTime = 0;
-                        }
-
-                        if (!streamMode) {
-                            try {
-                                bufferedWriter.write(outputString + "," + String.valueOf(sensorEvent.timestamp));
+                        if (!streamMode)
+                        {
+                            try
+                            {
+                                bufferedWriter.write(outputString + "," + String.valueOf(event.timestamp));
                                 bufferedWriter.newLine();
-                            } catch (IOException e) {
-                                Log.e(TAG, e.toString());
+                                if(!valuesReceived)
+                                {
+                                    activity.videoRequirementsToStart();
+                                    valuesReceived = true;
+                                }
+                            } catch (IOException e)
+                            {
+
+                               Log.e(TAG, e.toString());
                             }
-                        }
+                       }
                     }
-                    timestamp = sensorEvent.timestamp;
+
+                    timestamp = event.timestamp;
                     float[] deltaRotationMatrix = new float[9];
                     SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
-
-
                     busy = false;
-                }
-            }).start();
-            //writeToFile();
-
-            // User code should concatenate the delta rotation we computed with the current rotation
-            // in order to get the updated rotation.
-            // rotationCurrent = rotationCurrent * deltaRotationMatrix;
-        }
+               // }
+          //  }).start();
+        //}
     }
 
     public void setStartTime(long startTime)

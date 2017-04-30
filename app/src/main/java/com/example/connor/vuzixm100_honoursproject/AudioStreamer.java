@@ -5,9 +5,7 @@ import android.util.Log;
 
 import java.io.DataOutputStream;
 import java.io.IOException;
-import java.io.InputStream;
 import java.io.OutputStream;
-import java.io.PrintWriter;
 import java.net.ServerSocket;
 import java.net.Socket;
 
@@ -19,21 +17,34 @@ import java.net.Socket;
  */
 public class AudioStreamer implements Runnable
 {
-    private AudioHandler ah;
+    private RawAudioHandler ah;
     private String TAG = "AudioStreamer: ";
     private Context context;
 
 
-    public AudioStreamer(Context context, AudioHandler aud)
+    public AudioStreamer(Context context, RawAudioHandler aud)
     {
         this.context = context;
         ah = aud;
     }
 
+    ServerSocket sv = null;
+    public void closeSocket()
+    {
+        try
+        {
+
+            sv.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error");
+        }
+    }
+
     @Override
     public void run()
     {
-        ServerSocket sv;
         Socket client;
         OutputStream os;
         DataOutputStream dos;
@@ -42,9 +53,10 @@ public class AudioStreamer implements Runnable
         {
             sv = new ServerSocket(3333);
             client = sv.accept();
+            client.setSoTimeout(5000);
             os = client.getOutputStream();
             dos = new DataOutputStream(os);
-            ah.setOutputStream(dos);
+            ah.setOutputStream(dos, client);
             ah.startAudioStream();
         }
         catch(IOException e)

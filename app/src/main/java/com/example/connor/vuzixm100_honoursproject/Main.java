@@ -8,9 +8,13 @@ import android.hardware.Camera;
 import android.media.MediaRecorder;
 import android.net.wifi.p2p.WifiP2pManager;
 import android.net.wifi.p2p.WifiP2pManager.Channel;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.os.Handler;
+import android.os.HandlerThread;
 import android.os.SystemClock;
+import android.text.TextUtils;
 import android.text.format.Time;
 import android.util.Log;
 import android.view.SurfaceHolder;
@@ -24,6 +28,13 @@ import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Calendar;
+import java.util.Collections;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.TimeZone;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -57,16 +68,17 @@ public class Main extends Activity
     private boolean mediaStarted;
 
     private VideoCapture vc;
+    private String TAG = "Main: ";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main_);
 
+        getActionBar().setIcon(android.R.color.transparent);
 
         modeText = (TextView) findViewById(R.id.modeText);
         timerText = (TextView) findViewById(R.id.timerText);
-        TextView lolTest = (TextView) findViewById(R.id.loltest);
 
         setUpGestureSensor();
 
@@ -80,16 +92,8 @@ public class Main extends Activity
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_CONNECTION_CHANGED_ACTION);
         mIntentFilter.addAction(WifiP2pManager.WIFI_P2P_THIS_DEVICE_CHANGED_ACTION);
 
-
-        //Ref here...
-
         surfaceView = (SurfaceView) findViewById(R.id.camera_preview);
-        vc = new VideoCapture(surfaceView, true, outputDirectory, true, this);
-        //setDirectory();
-
-        //startStream();
-        GPSHandler gps = new GPSHandler(this, this, lolTest);
-
+        vc = new VideoCapture(surfaceView, true, true, this);
     }
 
     public void setModeText(String text)
@@ -98,13 +102,75 @@ public class Main extends Activity
     }
 
     String outputDirectory;
-    public void setDirectory() {
-        Time currTime = new Time(Time.getCurrentTimezone());
-        currTime.setToNow();
+    public void setDirectory()
+    {
+       Calendar calender = Calendar.getInstance(TimeZone.getTimeZone("GMT"));
 
-        mediaStorageDir = new File(Environment.getExternalStorageDirectory() + "/" + currTime.monthDay + 1 + "#"
-                + currTime.month + "#" + currTime.year + "--" + currTime.hour + "-" + currTime.minute + "-" + currTime.second);
+        //int day = calender.get(Calendar.MONTH) + 1;
+        int hours = calender.get(Calendar.HOUR_OF_DAY) + 1;
+        int minutes = calender.get(Calendar.MINUTE);
+        int month = calender.get(Calendar.DAY_OF_MONTH);
+        int seconds = calender.get(Calendar.SECOND);
+        int currentMonth = calender.get(Calendar.MONTH) + 1;
 
+        //String dayString = null;
+        String hoursString = null;
+        String minutesString = null;
+        String monthString = null;
+        String secondsString = null;
+        String currentMonthString = null;
+
+        if(hours < 10)
+        {
+            hoursString = "0" + hours;
+        }
+        else
+        {
+            hoursString = String.valueOf(hours);
+        }
+
+        if(minutes < 10)
+        {
+            minutesString = "0" + minutes;
+        }
+        else
+        {
+            minutesString = String.valueOf(minutes);
+        }
+
+        if(month < 10)
+        {
+            monthString = "0" + month;
+        }
+        else
+        {
+            monthString = String.valueOf(month);
+        }
+
+        if(seconds < 10)
+        {
+            secondsString = "0" + seconds;
+        }
+        else
+        {
+            secondsString = String.valueOf(seconds);
+        }
+
+        if(currentMonth < 10)
+        {
+            currentMonthString = "0" + currentMonth;
+        }
+        else
+        {
+            currentMonthString = String.valueOf(currentMonth);
+        }
+
+        mediaStorageDir = new File("/mnt/ext_sdcard" + "/" + month + "#"
+                + currentMonthString + "#" + calender.get(Calendar.YEAR) + "--" +
+                hoursString + "-" + minutesString + "-" +
+                secondsString);
+
+        System.out.println("Dir: " + mediaStorageDir.getPath());
         if (!mediaStorageDir.exists()) {
             if (!mediaStorageDir.mkdirs()) {
                 System.out.println("Failed to create directory...");
@@ -116,39 +182,68 @@ public class Main extends Activity
 
     public void startStream()
     {
-        vc.initialiseStreamProperties();
-        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, true);
-        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, true);
-        AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, true);
+        if(vc.surfaceIsCreated)
+        {
+            vc.initialiseStreamProperties();
+            ah = new AccelerometerHandler(this, outputDirectory, true);
+            gh = new GyroscopeHandler(this, outputDirectory, true);
 
-        ah.registerSensorListener();
-        gh.registerSensorListener();
-        setSensorReady();
-
-        startStreamThreads(vc, ah, gh, alh);
-        //Thread videoSocketListener = new Thread(vc, "Thread: Video");
-        //videoSocketListener.start();
+            alh = new AudioLevelsHandler(this, outputDirectory, true);
+            setSensorReady();
+            startStreamThreads();
+        }
+        else
+        {
+            Toast.makeText(this, "Surface hasn't been created. Please try again, or rester", Toast.LENGTH_LONG).show();
+        }
     }
 
-    private void setVideoThread(VideoCapture vc)
-    {
-        //Thread videoThread = new Thread(vc, "Thread: Video");
-        //videoThread.start();
-    }
-
+    AccelerometerHandler ah;
+    GyroscopeHandler gh;
+    AudioLevelsHandler alh;
     public void startRecording()
     {
-        VideoCapture vc = new VideoCapture(surfaceView, true, outputDirectory, false, this);
-        vc.init();
-        AccelerometerHandler ah = new AccelerometerHandler(this, outputDirectory, false);
-        GyroscopeHandler gh = new GyroscopeHandler(this, outputDirectory, false);
-        //AudioLevelsHandler alh = new AudioLevelsHandler(this, outputDirectory, false);
+        if(vc.surfaceIsCreated)
+        {
+            setDirectory();
+            ah = new AccelerometerHandler(this, outputDirectory, false);
+            gh = new GyroscopeHandler(this, outputDirectory, false);
+            ah.setFileOutput(outputDirectory);
+            gh.setFileOutput(outputDirectory);
+            vc.setDirectory(outputDirectory);
+            ah.registerSensorListener();
+            gh.registerSensorListener();
+        }
+        else
+        {
+            Toast.makeText(this, "Surface hasn't been created. Please try again, or rester", Toast.LENGTH_LONG).show();
+        }
 
-        setVideoThread(vc);
+    }
 
-        ah.registerSensorListener();
-        gh.registerSensorListener();
-        //startStreamThreads(vc, ah, gh, alh);
+    int sensorsReceivingData = 0;
+    public void videoRequirementsToStart()
+    {
+        sensorsReceivingData++;
+        if(sensorsReceivingData == 2)
+        {
+            vc.init();
+            sensorsReceivingData = 0;
+        }
+    }
+
+    public void stopRecording()
+    {
+        vc.stopRecording();
+        ah.stopListener();
+        ah.closeBuffer();
+        gh.stopListener();
+        gh.closeBuffer();
+        ah = null;
+        gh = null;
+
+        Toast.makeText(this, "Storing Stopped", Toast.LENGTH_LONG).show();
+        sensorsReady = 0;
     }
 
     MediaRecorder mr = new MediaRecorder();
@@ -179,7 +274,41 @@ public class Main extends Activity
 
     public void stopStream()
     {
-        //hnvideoSocketListener.ter
+        try {
+
+            csm.closeSocket();
+            as.closeSocket();
+            gs.closeSocket();
+            als.closeSocket();
+            videoSocketListener.interrupt();
+            videoSocketListener = null;
+            accelerometerSocketListener.interrupt();
+            accelerometerSocketListener = null;
+            gyroscopeSocketListener.interrupt();
+            gyroscopeSocketListener = null;
+            audioLevelsListener.interrupt();
+            audioLevelsListener = null;
+
+            csm = null;
+            as = null;
+            gs = null;
+            als = null;
+
+            ah.stopListener();
+            gh.stopListener();
+            ah = null;
+            gh = null;
+            //alh.stopRecording();
+            alh = null;
+
+            sensorsReady = 0;
+
+            Toast.makeText(this, "Stream Stopped", Toast.LENGTH_LONG).show();
+        }
+        catch(Exception e)
+        {
+            System.out.println("..." + e.toString());
+        }
     }
 
     VideoStreamer csm;
@@ -188,7 +317,7 @@ public class Main extends Activity
     AudioLevelsStreamer als;
     Thread videoSocketListener,accelerometerSocketListener, gyroscopeSocketListener, audioLevelsListener;
 
-    private void startStreamThreads(VideoCapture vc, AccelerometerHandler ah, GyroscopeHandler gh, AudioLevelsHandler alh)
+    private void startStreamThreads()
     {
         long currTime = System.nanoTime();
         ah.setStartTime(currTime);
@@ -210,11 +339,6 @@ public class Main extends Activity
         als = new AudioLevelsStreamer(alh);
         audioLevelsListener = new Thread(als, "Thread: Audio Levels");
         audioLevelsListener.start();
-
-        //AudioHandler audioH = new AudioHandler();
-        //AudioStreamer audioStreamer = new AudioStreamer(this, audioH);
-        //Thread audioTester = new Thread(audioStreamer, "Thread: Audio");
-        //audioTester.start();
     }
 
     int sensorsReady = 0;
@@ -236,14 +360,16 @@ public class Main extends Activity
         timerTask.cancel();
         timer.cancel();
         timerText.setText("00:00:00");
+        sensorsReady = 0;
     }
 
     TimerTask timerTask;
-    Timer timer = new Timer();
+    Timer timer;
     private void setTimer()
     {
         //http://stackoverflow.com/questions/4597690/android-timer-how
         //^For basic timer code (Not including formatting or splitting into hours/mins/seconds). Accessed: 27/03/2017 @ 15:37
+        timer = new Timer();
 
         timerTask = new TimerTask()
         {   int seconds = 0;
@@ -337,8 +463,24 @@ public class Main extends Activity
 
         System.out.println("On Destroy...");
 
+        vc.stopRecording();
+        vc = null;
+        alh = null;
+
+        if(!streamMode && ah!=null && gh!=null)
+        {
+            Log.i(TAG, "Closing Buffers");
+            ah.stopListener();
+            gh.stopListener();
+            ah.closeBuffer();
+            gh.closeBuffer();
+        }
+
         if(mGS != null)
             mGS.unregister();
+
+        gh = null;
+        ah = null;
     }
 
 }

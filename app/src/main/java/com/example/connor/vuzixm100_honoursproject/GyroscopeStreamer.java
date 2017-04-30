@@ -24,12 +24,27 @@ public class GyroscopeStreamer implements Runnable
     {
         this.context = context;
         this.gh = gh;
+        this.gh.registerSensorListener();
+    }
+
+    ServerSocket sv = null;
+    public void closeSocket()
+    {
+        try
+        {
+            gh.stopListener();
+            gh = null;
+            sv.close();
+        }
+        catch(Exception e)
+        {
+            System.out.println("Error");
+        }
     }
 
     @Override
     public void run()
     {
-        ServerSocket sv = null;
         Socket client;
         InputStream inputStream;
         PrintWriter out;
@@ -44,14 +59,16 @@ public class GyroscopeStreamer implements Runnable
             run();
         }
 
-        while(true) {
+        while(true && !sv.isClosed()) {
             try {
                 client = sv.accept();
+                client.setSoTimeout(5000);
                 out = new PrintWriter(client.getOutputStream(), true);
-                gh.addOutputPoint(out);
-            } catch (IOException e) {
+                gh.addOutputPoint(out, client);
+            } catch (IOException e)
+            {
                 Log.e(TAG, e.toString());
-                run();
+                //run();
             }
         }
     }
