@@ -44,6 +44,7 @@ import android.os.HandlerThread;
 /**
  * Created by Connor on 24/01/2017.
  * Handles video/audio data.
+ *
  * https://developer.android.com/guide/topics/media/camera.html#capture-video
  * ^ Used throughout class. Accessed: 25/01/2017 @ 19:10
  * http://stackoverflow.com/questions/1817742/how-can-i-capture-a-video-recording-on-android
@@ -125,7 +126,7 @@ public class VideoCapture implements SurfaceHolder.Callback {
     {
 
         Camera.Parameters parameters = camera.getParameters();
-        parameters.setPreviewFpsRange(16000, 16000);
+        parameters.setPreviewFpsRange(24000, 24000);
         parameters.setPreviewSize(320, 240);
 
         List<Camera.Size> sizes = parameters.getSupportedPreviewSizes();
@@ -148,12 +149,11 @@ public class VideoCapture implements SurfaceHolder.Callback {
                 mr.setAudioSource(MediaRecorder.AudioSource.CAMCORDER);
                 mr.setVideoSource(MediaRecorder.VideoSource.DEFAULT);
 
-                //Confirm This
                 CamcorderProfile cp = CamcorderProfile.get(CamcorderProfile.QUALITY_1080P);
                 cp.fileFormat = MediaRecorder.OutputFormat.MPEG_4;
                 cp.videoFrameRate = 24;
                 cp.audioChannels = 1;
-                cp.audioSampleRate = 8000; //Perhaps not set these, figure out defaults.
+                cp.audioSampleRate = 8000;
                 mr.setProfile(cp);
 
                 File mediaFile = new File(outputDirectory + File.separator + "Video.mp4");

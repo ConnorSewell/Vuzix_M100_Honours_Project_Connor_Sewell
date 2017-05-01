@@ -24,6 +24,7 @@ import java.util.TimerTask;
 
 /**
  * Created by Connor on 27/03/2017.
+ * Waits for incoming connections. When connection received, creates a writer to the client and passes it to audio levels handler
  *
  * http://stackoverflow.com/questions/29695269/android-audiorecord-audiotrack-playing-recording-from-buffer
  * ^ Used to aid with bundling audio stream into byte array. Also used in phone application (also reference there)
@@ -141,43 +142,6 @@ public class AudioLevelsHandler
     {
         this.startTime = startTime;
     }
-
-    /**
-    mediaRecorder = new MediaRecorder();
-    mediaRecorder.setAudioSamplingRate(8000);
-    mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-    mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.DEFAULT);
-    mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.DEFAULT);
-    mediaRecorder.setOutputFile("/dev/null");
-    try
-    {
-        mediaRecorder.prepare();
-        mediaRecorder.start();
-        mainActivity.setSensorReady();
-    }
-    catch(Exception e)
-    {
-        Log.e(TAG, e.toString());
-    }
-
-    while (true)
-    {
-        try
-        {
-            Thread.sleep(20);
-
-            int amplitude = mediaRecorder.getMaxAmplitude();
-            currTime = System.nanoTime();
-            for(int i = 0; i < outputPoints.size(); i++)
-            {
-                outputPoints.get(i).println(String.valueOf(amplitude) + "," + String.valueOf(currTime - startTime));
-            }
-        }
-        catch (Exception e)
-        {
-            Log.e(TAG, e.toString());
-        }
-    }
-     */
+    
 }
 

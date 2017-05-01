@@ -13,6 +13,8 @@ import android.util.Log;
 
 /**
  * Created by Connor on 08/02/2017.
+ * Listens for peer to peer connection changes/states, etc. This class is not used.
+ *
  * Majority of class code taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html
  * ^ Accessed 08/02/2017 @ 14:55
  */

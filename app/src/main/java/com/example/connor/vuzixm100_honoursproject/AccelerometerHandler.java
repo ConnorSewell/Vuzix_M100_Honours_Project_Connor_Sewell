@@ -181,7 +181,6 @@ public class AccelerometerHandler implements SensorEventListener {
                         } catch (IOException e) {
                             Log.e(TAG, "Write failed...");
                         }
-
                     }
                     busy = false;
                 }

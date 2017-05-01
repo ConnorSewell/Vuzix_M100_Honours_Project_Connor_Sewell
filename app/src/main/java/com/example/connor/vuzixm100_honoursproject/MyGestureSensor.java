@@ -69,8 +69,10 @@ public class MyGestureSensor extends GestureSensor
     }
 
     boolean running = false;
-    protected void onForwardSwipe(int speed) {
+    protected void onForwardSwipe(int speed)
+    {
         long currTime = System.currentTimeMillis();
+
         if (swipeIndex == 2)
         {
             if (currTime - lastTime <= 1500)
@@ -87,7 +89,7 @@ public class MyGestureSensor extends GestureSensor
                 }
                 else
                 {
-                    Toast.makeText(activity, "Cannot swap modes whilst streaming/recording", Toast.LENGTH_LONG);
+                    Toast.makeText(activity, "Cannot swap modes whilst streaming/recording", Toast.LENGTH_LONG).show();
                 }
             }
     }

@@ -298,7 +298,6 @@ public class Main extends Activity
             gh.stopListener();
             ah = null;
             gh = null;
-            //alh.stopRecording();
             alh = null;
 
             sensorsReady = 0;
@@ -307,7 +306,7 @@ public class Main extends Activity
         }
         catch(Exception e)
         {
-            System.out.println("..." + e.toString());
+            Log.e(TAG, e.toString());
         }
     }
 
@@ -460,9 +459,6 @@ public class Main extends Activity
     public void onDestroy()
     {
         super.onDestroy();
-
-        System.out.println("On Destroy...");
-
         vc.stopRecording();
         vc = null;
         alh = null;

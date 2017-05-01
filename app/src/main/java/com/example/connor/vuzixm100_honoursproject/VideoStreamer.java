@@ -16,6 +16,8 @@ import java.net.Socket;
 
 /**
  * Created by Connor on 18/02/2017.
+ * Waits for incoming connections. When connection received, creates a writer to the client and passes it video capture
+ *
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
@@ -49,7 +51,6 @@ public class VideoStreamer implements Runnable
 
         try
         {
-            //sv = new DatagramSocket(8888);
             sv = new ServerSocket(8888);
             sv.setSoTimeout(5000);
             sv.setPerformancePreferences(0, 1, 0);

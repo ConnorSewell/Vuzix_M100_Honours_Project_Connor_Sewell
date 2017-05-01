@@ -143,16 +143,6 @@ public class GyroscopeHandler implements SensorEventListener
     @Override
     public final void onSensorChanged(SensorEvent event)
     {
-        //Set here?
-        //if (!busy)
-        //{
-        //    this.sensorEvent = event;
-        //    busy = true;
-        //    new Thread(new Runnable()
-        //    {
-        //        @Override
-        //        public void run()
-        //        {
                     if (timestamp != 0) {
                         final float dT = (event.timestamp - timestamp) * NS2S;
 
@@ -169,15 +159,7 @@ public class GyroscopeHandler implements SensorEventListener
                             axisZ /= omegaMagnitude;
                         }
 
-                        //float thetaOverTwo = omegaMagnitude * dT / 2.0f;
-                        //float sinThetaOverTwo = (float) Math.sin(thetaOverTwo);
-                        //float cosThetaOverTwo = (float) Math.cos(thetaOverTwo);
-                        //deltaRotationVector[0] = sinThetaOverTwo * axisX;
-                        //deltaRotationVector[1] = sinThetaOverTwo * axisY;
-                        //deltaRotationVector[2] = sinThetaOverTwo * axisZ;
-                        //deltaRotationVector[3] = cosThetaOverTwo;
-
-                        outputString = axisX + "," + axisY + "," + axisZ; //Remove
+                        outputString = axisX + "," + axisY + "," + axisZ;
 
                         if (streamMode)
                             {
@@ -220,34 +202,12 @@ public class GyroscopeHandler implements SensorEventListener
                     float[] deltaRotationMatrix = new float[9];
                     SensorManager.getRotationMatrixFromVector(deltaRotationMatrix, deltaRotationVector);
                     busy = false;
-               // }
-          //  }).start();
-        //}
+
     }
 
     public void setStartTime(long startTime)
     {
         this.startTime = startTime;
     }
-
-    private float[] matrixMultiplication(float[] a, float[] b)
-    {
-        float[] result = new float[9];
-
-        result[0] = a[0] * b[0] + a[1] * b[3] + a[2] * b[6];
-        result[1] = a[0] * b[1] + a[1] * b[4] + a[2] * b[7];
-        result[2] = a[0] * b[2] + a[1] * b[5] + a[2] * b[8];
-
-        result[3] = a[3] * b[0] + a[4] * b[3] + a[5] * b[6];
-        result[4] = a[3] * b[1] + a[4] * b[4] + a[5] * b[7];
-        result[5] = a[3] * b[2] + a[4] * b[5] + a[5] * b[8];
-
-        result[6] = a[6] * b[0] + a[7] * b[3] + a[8] * b[6];
-        result[7] = a[6] * b[1] + a[7] * b[4] + a[8] * b[7];
-        result[8] = a[6] * b[2] + a[7] * b[5] + a[8] * b[8];
-
-        return result;
-    }
-
 
 }

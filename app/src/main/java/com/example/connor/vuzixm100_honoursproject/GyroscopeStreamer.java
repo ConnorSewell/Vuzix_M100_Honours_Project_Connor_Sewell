@@ -11,6 +11,8 @@ import java.net.Socket;
 
 /**
  * Created by Connor on 03/03/2017.
+ * Waits for incoming connections. When connection received, creates a writer to the client and passes it to gyroscope handler
+ *
  * Code for networking taken from: https://developer.android.com/guide/topics/connectivity/wifip2p.html#creating-app
  * ^ Accessed: 10/02/2017 @ 01:29
  */
